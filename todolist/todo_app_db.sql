@@ -1,0 +1,19 @@
+CREATE DATABASE IF NOT EXISTS todo_app_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE todo_app_db;
+
+CREATE TABLE IF NOT EXISTS User(
+    UserID INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    Password VARCHAR(255)NOT NULL
+    );
+
+CREATE TABLE IF NOT EXISTS Task(
+    TaskID INT AUTO_INCREMENT PRIMARY KEY,
+    UserID INT NOT NULL,
+    Title VARCHAR(255) NOT NULL,
+    Description TEXT,
+    DueDate DATE,
+    Priority ENUM ('low', 'medium', 'high') NOT NULL DEFAULT 'medium',
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (UserID) REFERENCES User (UserID) ON DELETE CASCADE
+    );
