@@ -90,9 +90,10 @@ $conn->close();
             <!-- Dùng $list['ListName'] lấy từ CSDL để điền vào value -->
             <input type="text" id="list_name" name="list_name" value="<?php echo htmlspecialchars($list['ListName']); ?>" required>
         </div>
-
-        <button type="submit" class="btn">Save Changes</button>
-        <a href="home.php" class="btn btn-secondary mt-1">Cancel</a>
+        <div class="button-group">
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="home.php" class="btn btn-secondary">Cancel</a>
+        </div>
     </form>
 </div>
 

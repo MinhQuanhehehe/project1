@@ -78,9 +78,10 @@ $conn->close();
            <input type="text" id="list_name" name="list_name" required>
        </div>
 
-
-       <button type="submit" class="btn">Create List</button>
-       <a href="home.php" class="btn btn-secondary mt-1">Cancel</a>
+       <div class="button-group">
+           <button type="submit" class="btn">Create List</button>
+           <a href="home.php" class="btn btn-secondary">Cancel</a>
+       </div>
    </form>
 </div>
 </body>

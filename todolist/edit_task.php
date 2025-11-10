@@ -202,9 +202,10 @@ $conn->close(); // Đóng kết nối ở cuối
            </select>
        </div>
 
-
-       <button type="submit" class="btn">Save Changes</button>
-       <a href="home.php" class="btn btn-secondary mt-1">Cancel</a>
+       <div class="button-group">
+           <button type="submit" class="btn">Save Changes</button>
+           <a href="home.php" class="btn btn-secondary">Cancel</a>
+       </div>
    </form>
 
 

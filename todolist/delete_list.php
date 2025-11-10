@@ -18,7 +18,13 @@ $list_id = $_GET['id'];
 // 3. XỬ LÝ XÓA (NẾU USER ĐÃ XÁC NHẬN "YES")
 if (isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
 
-    // Câu lệnh DELETE
+    // Xóa tất cả task thuộc list này
+    $stmt_delete_tasks = $conn->prepare("DELETE FROM Task WHERE ListID = ? AND UserID = ?");
+    $stmt_delete_tasks->bind_param("ii", $list_id, $current_user_id);
+    $stmt_delete_tasks->execute();
+    $stmt_delete_tasks->close();
+
+    // Xóa list
     $stmt_delete = $conn->prepare("DELETE FROM List WHERE ListID = ? AND UserID = ?");
     $stmt_delete->bind_param("ii", $list_id, $current_user_id);
 
@@ -68,14 +74,11 @@ $conn->close();
     <p>Are you sure you want to delete the list: <strong><?php echo htmlspecialchars($list['ListName']); ?></strong>?</p>
 
     <p class="text-secondary">
-        Note: Tasks in this list will not be deleted. They will be moved to "Tasks (No List)".
+    Note: All tasks in this list will be deleted.
     </p>
 
-    <form action="delete_list.php?id=<?php echo $list_id; ?>&confirm=yes" method="POST" class="form-confirm-delete">
-        <!-- Nút "Yes" sẽ submit form (hoặc đơn giản là 1 link) -->
-        <a href="delete_list.php?id=<?php echo $list_id; ?>&confirm=yes" class="btn btn-danger">Yes, Delete</a>
-
-        <!-- Nút "No" quay về trang chủ -->
+    <form class='button-group' action="delete_list.php?id=<?php echo $list_id; ?>&confirm=yes" method="POST" class="form-confirm-delete">
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
         <a href="home.php" class="btn btn-secondary">Cancel</a>
     </form>
 </div>

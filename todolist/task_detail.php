@@ -50,11 +50,11 @@ $conn->close();
 <div class="container">
    <div class="task-detail-card">
        <h2><?php echo htmlspecialchars($task['Title']); ?></h2>
-       <div class="task-description">
+       <p class="text-secondary">
            <?php
            echo nl2br(htmlspecialchars($task['Description']));
            ?>
-       </div>
+       </p>
        <hr class="task-divider">
        <div class="task-meta-details">
            <div class="meta-item">
@@ -80,7 +80,7 @@ $conn->close();
                <?php endif; ?>
            </div>
        </div>
-       <div class="task-detail-actions">
+       <div class="button-group">
             <a href="edit_task.php?id=<?php echo $task['TaskID']; ?>" class="action-icon icon-edit" title="Edit Task">
                 <i class="fas fa-edit"></i> 
             </a>
