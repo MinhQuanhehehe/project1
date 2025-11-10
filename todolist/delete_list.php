@@ -16,7 +16,7 @@ if (!isset($_GET['id']) || empty($_GET['id']) || !is_numeric($_GET['id'])) {
 $list_id = $_GET['id'];
 
 // 3. XỬ LÝ XÓA (NẾU USER ĐÃ XÁC NHẬN "YES")
-if (isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
+
 
     // Xóa tất cả task thuộc list này
     $stmt_delete_tasks = $conn->prepare("DELETE FROM Task WHERE ListID = ? AND UserID = ?");
@@ -38,7 +38,7 @@ if (isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
         exit;
     }
     $stmt_delete->close();
-}
+
 
 // 4. LẤY TÊN LIST ĐỂ HIỂN THỊ XÁC NHẬN (NẾU CHƯA XÁC NHẬN "YES")
 $stmt_get = $conn->prepare("SELECT ListName FROM List WHERE ListID = ? AND UserID = ?");

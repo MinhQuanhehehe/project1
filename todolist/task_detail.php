@@ -15,7 +15,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $task_id = $_GET['id'];
 $current_user_id = $_SESSION['UserID'];
 
-$sql = "SELECT t.*, l.ListName
+$sql = "SELECT t.*, l.ListName, t.IsCompleted
        FROM Task t
        LEFT JOIN List l ON t.ListID = l.ListID
        WHERE t.TaskID = ? AND t.UserID = ?";
@@ -57,6 +57,7 @@ $conn->close();
        </p>
        <hr class="task-divider">
        <div class="task-meta-details">
+        
            <div class="meta-item">
                <strong>List:</strong>
                <?php if (!empty($task['ListName'])): ?>
@@ -65,6 +66,18 @@ $conn->close();
                    <span class="meta-default"><em>(No List)</em></span>
                <?php endif; ?>
            </div>
+           <?php 
+            $checked_attribute = $task['IsCompleted'] ? 'checked' : '';
+            ?>
+            <div class="meta-item task-status-toggle">
+                <strong>Status:</strong>
+                <a href="toggle_complete.php?id=<?php echo $task['TaskID']; ?>" title="Toggle Completion Status">
+                    <input type="checkbox" onclick="window.location.href='toggle_complete.php?id=<?php echo $task['TaskID']; ?>';" <?php echo $checked_attribute; ?>>
+                    <span class="status-label">
+                        <?php echo $task['IsCompleted'] ? 'Completed' : 'Pending'; ?>
+                    </span>
+                </a>
+            </div>
            <div class="meta-item">
                <strong>Priority:</strong>
                <span class="priority-text-<?php echo htmlspecialchars($task['Priority']); ?>">

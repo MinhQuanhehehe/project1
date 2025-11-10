@@ -632,3 +632,29 @@ p {
 .text-secondary {
     margin: 30px;
 }
+/* Tệp: style.css */
+
+/* Định dạng cho mục Status trong Task Detail */
+.task-status-toggle a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--color-text); /* Đảm bảo màu chữ hiển thị */
+    font-weight: 500;
+}
+
+.task-status-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* Định dạng label Completed/Pending */
+.task-status-toggle .status-label {
+    font-weight: 600;
+}
+.task-status-toggle .status-label:empty {
+    /* Ẩn nếu không có nội dung (không áp dụng trong trường hợp này, nhưng là thực tiễn tốt) */
+    display: none; 
+}

@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
        </div>
        <div>
            <label for="due_date">Due Date</label>
-           <input type="date" id="due_date" name="due_date">
+           <input type="date" id="due_date" name="due_date" required>
        </div>
        <div>
            <label for="priority">Priority</label>
