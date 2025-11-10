@@ -16,8 +16,12 @@ $stmt_lists->execute();
 $lists_data = $stmt_lists->get_result();
 
 $page_title = "Your Tasks";
+
 $search_query = isset($_GET['search_query']) ? trim($_GET['search_query']) : '';
 $list_filter_id = isset($_GET['list_id']) ? $_GET['list_id'] : null;
+$filter_start_date = isset($_GET['filter_start_date']) ? trim($_GET['filter_start_date']) : '';
+$filter_end_date = isset($_GET['filter_end_date']) ? trim($_GET['filter_end_date']) : '';
+$priority_filter = isset($_GET['priority_filter']) ? trim($_GET['priority_filter']) : '';
 
 $params = [$current_user_id];
 $types = "i";
@@ -48,6 +52,7 @@ if (isset($_GET['list_id']) && $_GET['list_id'] !== '') {
     $page_title = "All Tasks";
 }
 
+
 if (!empty($search_query)) {
     $where_clauses .= " AND (t.Title LIKE ? OR t.Description LIKE ?)";
     $like_query = "%" . $search_query . "%";
@@ -56,6 +61,41 @@ if (!empty($search_query)) {
     $types .= "ss";
     $page_title = "Search Results";
 }
+
+
+$date_filter_title_parts = [];
+if (!empty($filter_start_date)) {
+    $where_clauses .= " AND t.DueDate >= ?";
+    $params[] = $filter_start_date;
+    $types .= "s";
+    $date_filter_title_parts[] = "From: " . htmlspecialchars(date("d/m/Y", strtotime($filter_start_date)));
+}
+if (!empty($filter_end_date)) {
+    $where_clauses .= " AND t.DueDate <= ?";
+    $params[] = $filter_end_date;
+    $types .= "s";
+    $date_filter_title_parts[] = "To: " . htmlspecialchars(date("d/m/Y", strtotime($filter_end_date)));
+}
+if ($page_title != "Search Results" && !empty($date_filter_title_parts)) {
+     $page_title = "Tasks (" . implode(', ', $date_filter_title_parts) . ")";
+}
+
+
+if (!empty($priority_filter)) {
+    $where_clauses .= " AND t.Priority = ?";
+    $params[] = $priority_filter;
+    $types .= "s";
+    
+    if ($page_title == "Search Results"){
+         $page_title .= " (" . htmlspecialchars($priority_filter) . ")";
+    } else if (!empty($date_filter_title_parts)){
+         $page_title .= " (" . htmlspecialchars($priority_filter) . ")";
+    }
+    else {
+        $page_title = htmlspecialchars($priority_filter) . " Priority Tasks";
+    }
+}
+
 
 $sql = "SELECT t.*, l.ListName, t.IsCompleted
        FROM Task t
@@ -80,6 +120,7 @@ $tasks_result = $stmt_tasks->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Todo App</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="search-filter.css"> 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -94,22 +135,70 @@ $tasks_result = $stmt_tasks->get_result();
         <a href="create_list.php" class="btn btn-secondary">Create New List</a>
     </div>
 
-    <div class="search-bar">
-        <form action="home.php" method="GET">
-            <?php if ($list_filter_id !== null): ?>
-                <input type="hidden" name="list_id" value="<?php echo htmlspecialchars($list_filter_id); ?>">
-            <?php endif; ?>
-            <input type="text" name="search_query" placeholder="Search tasks..." value="<?php echo htmlspecialchars($search_query); ?>">
-            <button type="submit" class="btn">Search</button>
-        </form>
-    </div>
-    <div class="list-filter-container">
+<div class="search-bar">
+
+    <form id="searchForm" action="home.php" method="GET">
+        
+        <?php if ($list_filter_id !== null): ?>
+            <input type="hidden" name="list_id" value="<?php echo htmlspecialchars($list_filter_id); ?>">
+        <?php endif; ?>
+
+        <div class="filter-row">
+            
+            <div class="filter-column">
+                <label for="search_query" class="filter-label">Search</label>
+                <input type="text" id="search_query" name="search_query" placeholder="Search tasks..." 
+                       value="<?php echo htmlspecialchars($search_query ?? ''); ?>" 
+                       class="filter-field filter-input-search">
+            </div>
+
+            <div class="filter-column">
+                <label for="filter_start_date" class="filter-label">From Date</label>
+                <input type="date" id="filter_start_date" name="filter_start_date" 
+                       value="<?php echo htmlspecialchars($filter_start_date ?? ''); ?>" 
+                       class="filter-field">
+            </div>
+        </div>
+
+        <div class="filter-row">
+            
+            <div class="filter-column">
+                <label for="priority_filter" class="filter-label">Priority</label>
+                <select id="priority_filter" name="priority_filter" 
+                        onchange="this.form.submit()"
+                        class="filter-field">
+                    <option value="" <?php echo ($priority_filter == '') ? 'selected' : ''; ?>>All Priorities</option>
+                    <option value="Low" <?php echo ($priority_filter == 'Low') ? 'selected' : ''; ?>>Low</option>
+                    <option value="Medium" <?php echo ($priority_filter == 'Medium') ? 'selected' : ''; ?>>Medium</option>
+                    <option value="High" <?php echo ($priority_filter == 'High') ? 'selected' : ''; ?>>High</option>
+                </select>
+            </div>
+            
+            <div class="filter-column">
+                <label for="filter_end_date" class="filter-label">To Date</label>
+                <input type="date" id="filter_end_date" name="filter_end_date" 
+                       value="<?php echo htmlspecialchars($filter_end_date ?? ''); ?>" 
+                       class="filter-field">
+            </div>
+
+        </div>
+
+        <div class="filter-button-container">
+            <button type="submit" class="filter-button-submit">
+                Search
+            </button>
+        </div>
+    </form>
+
+</div> 
+<div class="list-filter-container">
         <h4 class="list-filter-title">My Lists</h4>
-        <form method="GET" action="home.php" style="display: flex; align-items: center; gap: 10px;">
+        <form method="GET" action="home.php">
             <select name="list_id" onchange="this.form.submit()">
                 <option value="" <?php echo ($list_filter_id === null) ? 'selected' : ''; ?>>All Tasks</option>
                 <option value="none" <?php echo ($list_filter_id === 'none') ? 'selected' : ''; ?>>Tasks (No List)</option>
                 <?php
+                // Tái thiết lập và thực thi statement cho lists
                 $stmt_lists->data_seek(0);
                 while($list = $lists_data->fetch_assoc()):
                     ?>
@@ -118,7 +207,20 @@ $tasks_result = $stmt_tasks->get_result();
                     </option>
                 <?php endwhile; ?>
             </select>
-        </form>
+            
+            <?php if (!empty($search_query)): ?>
+                <input type="hidden" name="search_query" value="<?php echo htmlspecialchars($search_query); ?>">
+            <?php endif; ?>
+            <?php if (!empty($filter_start_date)): ?>
+                <input type="hidden" name="filter_start_date" value="<?php echo htmlspecialchars($filter_start_date); ?>">
+            <?php endif; ?>
+            <?php if (!empty($filter_end_date)): ?>
+                <input type="hidden" name="filter_end_date" value="<?php echo htmlspecialchars($filter_end_date); ?>">
+            <?php endif; ?>
+            <?php if (!empty($priority_filter)): ?>
+                <input type="hidden" name="priority_filter" value="<?php echo htmlspecialchars($priority_filter); ?>">
+            <?php endif; ?>
+            </form>
     </div>
     <div class="task-header">
         <h3><?php echo $page_title; ?></h3>
@@ -135,11 +237,13 @@ $tasks_result = $stmt_tasks->get_result();
     </div>
     <div class="task-list">
         <?php if ($tasks_result->num_rows == 0): ?>
-            <?php if(!empty($search_query)): ?>
-                <p>No tasks found matching your search.</p>
+            
+            <?php if(!empty($search_query) || !empty($filter_start_date) || !empty($filter_end_date) || !empty($priority_filter)): ?>
+                <p>No tasks found matching your filters.</p>
             <?php else: ?>
                 <p>You have no tasks here. Click "Create New Task" to add one!</p>
             <?php endif; ?>
+
         <?php else: ?>
             <?php while($task = $tasks_result->fetch_assoc()):
                 $completed_class = $task['IsCompleted'] ? ' is-completed' : '';
