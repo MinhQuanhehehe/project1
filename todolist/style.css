@@ -1,28 +1,26 @@
 :root {
-    --color-primary: #007bff;          /* Xanh dương chính */
-    --color-primary-dark: #0056b3;     /* Khi di chuột */
-    --color-secondary: #6c757d;       /* Xám (Nút Cancel) */
-    --color-secondary-dark: #5a6268;   /* Khi di chuột */
-    --color-danger: #dc3545;           /* Đỏ (Nút Xóa) */
-    --color-danger-dark: #c82333;      /* Khi di chuột */
-    --color-edit: #ffc107;             /* Vàng (Nút Sửa) */
-    --color-edit-dark: #e0a800;         /* Khi di chuột */
+    --color-primary: #007bff;
+    --color-primary-dark: #0056b3;
+    --color-secondary: #6c757d;
+    --color-secondary-dark: #5a6268;
+    --color-danger: #dc3545;
+    --color-danger-dark: #c82333;
+    --color-edit: #ffc107;
+    --color-edit-dark: #e0a800;
 
     --gradient:linear-gradient(180deg, rgba(45, 122, 255, 0.73) 0%, #163e92 100%);
-    --color-text: #0b0a0a;                /* Màu chữ chính */
-    --color-text-light: #555;          /* Màu chữ phụ */
-    --color-border: #dee2e6;           /* Màu viền */
-    --color-input-bg: #fdfdfd;         /* Nền ô input */
+    --color-text: #0b0a0a;
+    --color-text-light: #555;
+    --color-border: #dee2e6;
+    --color-input-bg: #fdfdfd;
 
-    --color-card-bg: #fff;              /* Nền thẻ task */
-    --color-bg: #f8f9fa;                /* Nền filter, list */
+    --color-card-bg: #fff;
+    --color-bg: #f8f9fa;
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --border-radius: 8px;
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     --transition: all 0.2s ease-in-out;
 }
-
-
 
 * {
     box-sizing: border-box;
@@ -30,22 +28,19 @@
     padding: 0;
 }
 
-
 body {
     background: var(--gradient) no-repeat fixed;
-    background-size: cover;               /* Trải gradient toàn màn hình */
+    background-size: cover;
     font-family: var(--font-family);
     color: var(--color-text);
     line-height: 1.6;
 
-    display: flex;                        /* Đưa form vào giữa */
+    display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;                    /* Quan trọng */
-    padding: 0;                           /* Xóa padding gây đường chia */
+    min-height: 100vh;
+    padding: 0;
 }
-
-
 
 a {
     color: var(--color-primary);
@@ -57,8 +52,6 @@ a:hover {
     text-decoration: underline;
 }
 
-
-/* === CONTAINER CHÍNH === */
 .container {
     width: 60%;
     margin: 20px auto;
@@ -68,8 +61,6 @@ a:hover {
     box-shadow: var(--box-shadow);
 }
 
-
-/* Container cho form đăng nhập/đăng ký (nhỏ hơn) */
 .auth-container {
     max-width: 450px;
     width: 100%;
@@ -81,32 +72,25 @@ a:hover {
     box-shadow: 0 8px 30px rgba(0,0,0,0.1);
 }
 
-
-
 h2 {
     text-align: center;
     margin-bottom: 15px;
     color: var(--color-text);
 }
 
-
 h3 {
     color: var(--color-text);
     padding: 10px;
 }
-
 
 h4 {
     color: var(--color-text-light);
     margin-bottom: 10px;
 }
 
-
-/* === FORM CHUNG === */
 form div {
     margin-bottom: 15px;
 }
-
 
 form label {
     display: block;
@@ -114,7 +98,6 @@ form label {
     font-weight: 600;
     color: var(--color-text-light);
 }
-
 
 input[type="text"],
 input[type="password"],
@@ -131,12 +114,10 @@ select {
     transition: var(--transition);
 }
 
-
 textarea {
     min-height: 120px;
     resize: vertical;
 }
-
 
 input:focus,
 textarea:focus,
@@ -146,8 +127,6 @@ select:focus {
     box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
 }
 
-
-/* === NÚT BẤM (BUTTONS) === */
 .btn {
     display: inline-block;
     padding: 12px 15px;
@@ -160,9 +139,6 @@ select:focus {
     text-align: center;
     text-decoration: none;
     transition: var(--transition);
-
-
-    /* Nút chính (Xanh) */
     background-color: var(--color-primary);
     color: #fff;
 }
@@ -172,8 +148,6 @@ select:focus {
     text-decoration: none;
 }
 
-
-/* Nút phụ (Xám) */
 .btn-secondary {
     background-color: var(--color-secondary);
     color: #fff;
@@ -183,8 +157,6 @@ select:focus {
     color: #fff;
 }
 
-
-/* Nút xóa (Đỏ) */
 .btn-danger {
     background-color: var(--color-danger);
     color: #fff;
@@ -194,8 +166,6 @@ select:focus {
     color: #fff;
 }
 
-
-/* Nút sửa (Vàng) */
 .btn-edit {
     background-color: var(--color-edit);
     color: #333;
@@ -205,16 +175,9 @@ select:focus {
     color: #333;
 }
 
-
-/* Tiện ích */
 .mt-1 { margin-top: 10px; }
 .text-center { text-align: center; }
 
-
-/* === TRANG HOME === */
-
-
-/* Header (Welcome, Logout) */
 .header {
     display:flex;
     justify-content: space-between;
@@ -228,18 +191,16 @@ select:focus {
     text-align: left;
 }
 .header .btn {
-    width: auto; /* Nút logout không chiếm 100% */
+    width: auto;
 }
 
-
-/* Khu điều khiển (Tạo Task, Tạo List) */
 .task-controls {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
 }
 .task-controls .btn {
-    width: 100%; /* Chia đôi */
+    width: 100%;
 }
 @media (max-width: 600px) {
     .task-controls {
@@ -247,22 +208,18 @@ select:focus {
     }
 }
 
-
-/* Thanh tìm kiếm */
 .search-bar form {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
 }
 .search-bar input[type="text"] {
-    flex-grow: 1; /* Chiếm hết phần còn lại */
+    flex-grow: 1;
 }
 .search-bar .btn {
-    width: auto; /* Nút Search vừa vặn */
+    width: auto;
 }
 
-
-/* Bộ lọc List */
 .list-filter-container {
     margin-bottom: 15px;
 }
@@ -290,14 +247,11 @@ select:focus {
     color: var(--color-text);
     text-decoration: none;
 }
-/* Link đang được chọn */
 .list-filter-item.active {
     background-color: var(--color-primary);
     color: #fff;
 }
 
-
-/* === DANH SÁCH TASK (Home) === */
 .task-list {
     display: flex;
     flex-direction: column;
@@ -317,15 +271,12 @@ select:focus {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-
-/* Bo viền trái theo mức độ ưu tiên */
 .priority-low { border-left: 5px solid #28a745; }
 .priority-medium { border-left: 5px solid #ffc107; }
 .priority-high { border-left: 5px solid #dc3545; }
 
-
 .task-title {
-    flex-grow: 1; /* Chiếm hết phần còn lại */
+    flex-grow: 1;
     font-size: 1.1em;
     font-weight: 600;
     color: var(--color-text);
@@ -334,8 +285,6 @@ select:focus {
     color: var(--color-primary);
     text-decoration: none;
 }
-
-
 .task-meta {
     display: flex;
     gap: 10px;
@@ -354,8 +303,6 @@ select:focus {
     font-size: 0.9em;
     color: var(--color-text-light);
 }
-
-
 .task-actions {
     display: flex;
     gap: 10px;
@@ -365,9 +312,6 @@ select:focus {
     padding: 8px 12px;
     font-size: 0.9em;
 }
-
-
-/* === TRANG CHI TIẾT TASK === */
 .task-detail-card {
     padding: 30px;
     padding: 40px 32px;
@@ -422,8 +366,6 @@ select:focus {
 .priority-text-low { color: #28a745; }
 .priority-text-medium { color: #ffc107; }
 .priority-text-high { color: #dc3545; }
-
-
 .task-detail-actions {
     display: flex;
     flex-wrap: wrap;
@@ -432,97 +374,10 @@ select:focus {
     border-top: 1px solid var(--color-border);
     padding-top: 25px;
 }
-
-/* === BỘ LỌC TÌM KIẾM (MỚI) === */
-.search-bar {
-    max-width: 800px; 
-    margin: 20px auto; 
-    font-family: 'Segoe UI', sans-serif;
-}
-
-#searchForm {
-    background: #f8f9fa; 
-    padding: 20px; 
-    border-radius: 12px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.filter-row {
-    display: flex; 
-    gap: 16px; 
-    margin-bottom: 16px; 
-    align-items: flex-end; 
-    flex-wrap: wrap;
-}
-.filter-row:last-child {
-    margin-bottom: 0; /* Hàng cuối cùng không cần margin-bottom */
-}
-
-.filter-column {
-    flex: 1; 
-    min-width: 200px;
-}
-
-.filter-label {
-    display: block; 
-    font-weight: 600; 
-    margin-bottom: 6px; 
-    color: #444; 
-    font-size: 14px;
-}
-
-/* Lớp CSS cơ sở cho các trường input/select */
-.filter-field {
-    width: 100%;
-    border: 1.5px solid #ddd; 
-    border-radius: 10px; 
-    font-size: 14px; 
-    background: #fff;
-    box-sizing: border-box; /* Quan trọng */
-    padding: 11px; /* Padding mặc định cho date/select */
-}
-
-/* Lớp CSS tùy chỉnh cho ô search (padding khác) */
-.filter-field.filter-input-search {
-    padding-left: 14px;
-    padding-right: 14px;
-}
-
-.filter-button-container {
-    display: flex; 
-    justify-content: center;
-    margin-top: 16px; /* Tạo khoảng cách với hàng filter bên trên */
-    margin-bottom: 0; /* Ghi đè margin-bottom của form div */
-}
-
-.filter-button-submit {
-    padding: 12px 36px; 
-    background: var(--color-primary); 
-    color: white; 
-    font-weight: 600; 
-    font-size: 15px; 
-    border: none; 
-    border-radius: 10px; 
-    cursor: pointer;
-    min-width: 130px;
-}
-.filter-button-submit:hover {
-    background: var(--color-primary-dark);
-}
-
-/* Ghi đè style cho form dropdown "My Lists" */
-.list-filter-container form {
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-}
-
 .task-detail-actions .btn {
     width: auto;
 }
 
-
-/* === Responsive cho thiết bị nhỏ === */
 @media (max-width: 768px) {
     body {
         padding: 10px;
@@ -538,8 +393,6 @@ select:focus {
     .header h2 {
         font-size: 1.5em;
     }
-
-
     .task-item {
         flex-direction: column;
         align-items: flex-start;
@@ -570,19 +423,99 @@ select:focus {
     gap: 10px;
 }
 
-
 p {
     margin-top: 30px;
     text-align: center;
 }
-/* ... (các đoạn CSS cũ) ... */
-
-/* === DANH SÁCH TASK (Home) === */
 .task-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+
+
+.search-bar {
+    max-width: 800px; 
+    margin: 20px auto; 
+    font-family: 'Segoe UI', sans-serif;
+}
+
+#searchForm {
+    background: #f8f9fa; 
+    padding: 20px; 
+    border-radius: 12px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter-row {
+    display: flex; 
+    gap: 16px; 
+    margin-bottom: 16px; 
+    align-items: flex-end; 
+    flex-wrap: wrap;
+}
+.filter-row:last-child {
+    margin-bottom: 0; 
+}
+
+.filter-column {
+    flex: 1; 
+    min-width: 200px;
+}
+
+.filter-label {
+    display: block; 
+    font-weight: 600; 
+    margin-bottom: 6px; 
+    color: #444; 
+    font-size: 14px;
+}
+
+
+.filter-field {
+    width: 100%;
+    border: 1.5px solid #ddd; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    background: #fff;
+    box-sizing: border-box; 
+    padding: 11px; 
+}
+
+
+.filter-field.filter-input-search {
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.filter-button-container {
+    display: flex; 
+    justify-content: center;
+    margin-top: 16px; 
+    margin-bottom: 0; 
+}
+
+.filter-button-submit {
+    padding: 12px 36px; 
+    background: var(--color-primary); 
+    color: white; 
+    font-weight: 600; 
+    font-size: 15px; 
+    border: none; 
+    border-radius: 10px; 
+    cursor: pointer;
+    min-width: 130px;
+}
+.filter-button-submit:hover {
+    background: var(--color-primary-dark);
+}
+
+.list-filter-container form {
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
+}
+
 .task-item {
     display: flex;
     align-items: center;
@@ -597,14 +530,11 @@ p {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-
-/* SỬA ĐỔI: Định dạng cho Checkbox/Task Toggle */
 .task-item .task-toggle {
     margin-right: 15px;
     display: flex;
     align-items: center;
     text-decoration: none;
-    /* Giữ checkbox không bị hover */
 }
 .task-item .task-toggle input[type="checkbox"] {
     width: 20px;
@@ -612,49 +542,39 @@ p {
     cursor: pointer;
 }
 
-
-/* SỬA ĐỔI: Định dạng cho Task đã hoàn thành */
 .task-item.is-completed {
-    border-left: 5px solid #ccc; /* Viền xám thay vì màu ưu tiên */
+    border-left: 5px solid #ccc;
     opacity: 0.8;
 }
 .task-item.is-completed .task-title {
-    text-decoration: line-through; /* Gạch ngang tiêu đề */
-    color: var(--color-text-light); /* Màu chữ xám hơn */
+    text-decoration: line-through;
+    color: var(--color-text-light);
 }
 .task-item.is-completed .task-meta {
-    opacity: 0.7; /* Làm mờ thông tin meta */
+    opacity: 0.7;
 }
-/* Ẩn/làm mờ các nút hành động của Task đã hoàn thành (tùy chọn) */
 .task-item.is-completed .task-actions {
     opacity: 0.5;
-    pointer-events: none; /* Không cho phép click */
+    pointer-events: none;
 }
 
-
-/* Bo viền trái theo mức độ ưu tiên */
 .priority-low { border-left: 5px solid #28a745; }
 .priority-medium { border-left: 5px solid #ffc107; }
 .priority-high { border-left: 5px solid #dc3545; }
 
-/* ... (các đoạn CSS cũ còn lại) ... */
-/* --- SỬA ĐỔI ICON ACTIONS --- */
-
-/* Định dạng chung cho các nút hành động icon (Edit/Delete) */
 .action-icon {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    width: 36px; /* Kích thước hình tròn */
+    width: 36px;
     height: 36px;
-    border-radius: 50%; /* Hình tròn */
-    color: #fff; /* Màu icon trắng */
+    border-radius: 50%;
+    color: #fff;
     text-decoration: none;
     transition: var(--transition);
     font-size: 16px;
 }
 
-/* Màu sắc cho nút Edit (Sử dụng màu Primary) */
 .action-icon.icon-edit {
     background-color: var(--color-primary);
 }
@@ -662,41 +582,35 @@ p {
     background-color: var(--color-primary-dark);
 }
 
-/* Màu sắc cho nút Delete (Sử dụng màu Danger) */
 .action-icon.icon-delete {
     background-color: var(--color-danger);
 }
-/* Màu sắc cho nút Secondary (Back/Cancel) */
 .action-icon.icon-secondary {
-    background-color: var(--color-secondary); /* Màu xám */
+    background-color: var(--color-secondary);
 }
 .action-icon.icon-secondary:hover {
-    background-color: var(--color-secondary-dark); /* Màu xám đậm hơn khi hover */
+    background-color: var(--color-secondary-dark);
 }
 .action-icon.icon-delete:hover {
     background-color: var(--color-danger-dark);
 }
 
-/* Điều chỉnh vị trí và khoảng cách của Task Actions */
 .task-actions {
     display: flex;
-    gap: 10px; /* Khoảng cách giữa các icon */
+    gap: 10px;
     align-items: center;
 }
 
-/* Điều chỉnh vị trí và khoảng cách của List Actions */
 .list-actions {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-/* Điều chỉnh khi Task đã hoàn thành */
 .task-item.is-completed .action-icon {
     opacity: 0.5;
     pointer-events: none;
 }
-
 
 .action-icon:focus {
     box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
@@ -718,3 +632,24 @@ p {
     margin: 30px;
 }
 
+.task-status-toggle a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.task-status-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.task-status-toggle .status-label {
+    font-weight: 600;
+}
+.task-status-toggle .status-label:empty {
+    display: none;
+}
