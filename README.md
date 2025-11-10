@@ -89,7 +89,7 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
  
 - **Xóa danh sách (`delete_list.php`)**  
   - Window alert để xóa list
-  - 
+    
 ---
 
 #### **Quản lý Công việc (Task Management)**
