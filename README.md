@@ -48,8 +48,7 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 
 ### Quan hệ giữa các bảng
 - Một **User** có thể có nhiều **List**  
-- Mỗi **List** chứa nhiều **Task**  
-- Nếu **User** bị xóa → tất cả **List** và **Task** của họ cũng bị xóa (`ON DELETE CASCADE`)  
+- Mỗi **List** chứa nhiều **Task**    
 - Nếu **List** bị xóa → tất cả **Task** trong danh sách đó cũng bị xóa (`ON DELETE CASCADE`)
 
 ---
