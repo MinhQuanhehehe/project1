@@ -48,7 +48,6 @@ if (isset($_GET['list_id']) && $_GET['list_id'] !== '') {
     $page_title = "All Tasks";
 }
 
-
 if (!empty($search_query)) {
     $where_clauses .= " AND (t.Title LIKE ? OR t.Description LIKE ?)";
     $like_query = "%" . $search_query . "%";
@@ -58,12 +57,11 @@ if (!empty($search_query)) {
     $page_title = "Search Results";
 }
 
-// SỬA ĐỔI: Thêm t.IsCompleted vào SELECT và điều chỉnh ORDER BY
 $sql = "SELECT t.*, l.ListName, t.IsCompleted
        FROM Task t
        LEFT JOIN List l ON t.ListID = l.ListID
        $where_clauses
-       ORDER BY t.IsCompleted ASC, t.CreatedAt DESC"; // Sắp xếp Task chưa hoàn thành lên đầu
+       ORDER BY t.IsCompleted ASC, t.CreatedAt DESC";
 
 $stmt_tasks = $conn->prepare($sql);
 
@@ -112,7 +110,6 @@ $tasks_result = $stmt_tasks->get_result();
                 <option value="" <?php echo ($list_filter_id === null) ? 'selected' : ''; ?>>All Tasks</option>
                 <option value="none" <?php echo ($list_filter_id === 'none') ? 'selected' : ''; ?>>Tasks (No List)</option>
                 <?php
-                // Tái thiết lập và thực thi statement cho lists
                 $stmt_lists->data_seek(0);
                 while($list = $lists_data->fetch_assoc()):
                     ?>
@@ -145,7 +142,6 @@ $tasks_result = $stmt_tasks->get_result();
             <?php endif; ?>
         <?php else: ?>
             <?php while($task = $tasks_result->fetch_assoc()):
-                // SỬA ĐỔI: Thêm class điều kiện
                 $completed_class = $task['IsCompleted'] ? ' is-completed' : '';
                 $checked_attribute = $task['IsCompleted'] ? 'checked' : '';
                 ?>

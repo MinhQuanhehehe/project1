@@ -1,53 +1,42 @@
 <?php
-include 'db_connect.php'; // Đã bao gồm session_start()
+global $conn;
+include 'db_connect.php';
 
-// 1. BẢO VỆ TRANG: Phải đăng nhập
 if (!isset($_SESSION['UserID'])) {
     header("Location: login.php");
     exit;
 }
 $current_user_id = $_SESSION['UserID'];
 
-// 2. KIỂM TRA LIST ID: Phải có ID trên URL và là số
 if (!isset($_GET['id']) || empty($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: home.php");
     exit;
 }
 $list_id = $_GET['id'];
 
-// 3. XỬ LÝ XÓA (NẾU USER ĐÃ XÁC NHẬN "YES")
-
-
-    // Xóa tất cả task thuộc list này
     $stmt_delete_tasks = $conn->prepare("DELETE FROM Task WHERE ListID = ? AND UserID = ?");
     $stmt_delete_tasks->bind_param("ii", $list_id, $current_user_id);
     $stmt_delete_tasks->execute();
     $stmt_delete_tasks->close();
 
-    // Xóa list
     $stmt_delete = $conn->prepare("DELETE FROM List WHERE ListID = ? AND UserID = ?");
     $stmt_delete->bind_param("ii", $list_id, $current_user_id);
 
     if ($stmt_delete->execute()) {
-        // Xóa thành công, quay về trang chủ
         header("Location: home.php?status=list_deleted");
         exit;
     } else {
-        // Lỗi
         header("Location: home.php?status=list_delete_error");
         exit;
     }
     $stmt_delete->close();
 
-
-// 4. LẤY TÊN LIST ĐỂ HIỂN THỊ XÁC NHẬN (NẾU CHƯA XÁC NHẬN "YES")
 $stmt_get = $conn->prepare("SELECT ListName FROM List WHERE ListID = ? AND UserID = ?");
 $stmt_get->bind_param("ii", $list_id, $current_user_id);
 $stmt_get->execute();
 $result_get = $stmt_get->get_result();
 
 if ($result_get->num_rows != 1) {
-    // Không tìm thấy List hoặc không phải chủ sở hữu
     header("Location: home.php");
     exit;
 }

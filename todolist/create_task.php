@@ -22,7 +22,7 @@ $lists_data = $stmt_lists->get_result();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
    $title = $_POST['title'];
    $description = $_POST['description'];
-   $due_date = $_POST['due_date'];
+   $due_date = empty($_POST['due_date']) ? NULL : $_POST['due_date'];
    $priority = $_POST['priority'];
    $list_id = !empty($_POST['list_id']) ? $_POST['list_id'] : NULL;
 
@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
        </div>
        <div>
            <label for="due_date">Due Date</label>
-           <input type="date" id="due_date" name="due_date" required>
+           <input type="date" id="due_date" name="due_date">
        </div>
        <div>
            <label for="priority">Priority</label>

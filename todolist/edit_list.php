@@ -1,14 +1,13 @@
 <?php
-include 'db_connect.php'; // Đã bao gồm session_start()
+global $conn;
+include 'db_connect.php';
 
-// 1. BẢO VỆ TRANG: Phải đăng nhập
 if (!isset($_SESSION['UserID'])) {
     header("Location: login.php");
     exit;
 }
 $current_user_id = $_SESSION['UserID'];
 
-// 2. KIỂM TRA LIST ID: Phải có ID trên URL và là số
 if (!isset($_GET['id']) || empty($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: home.php");
     exit;
@@ -16,14 +15,12 @@ if (!isset($_GET['id']) || empty($_GET['id']) || !is_numeric($_GET['id'])) {
 $list_id = $_GET['id'];
 $error_message = '';
 
-// 3. XỬ LÝ FORM KHI USER SUBMIT (POST)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_list_name = trim($_POST['list_name']);
 
     if (empty($new_list_name)) {
         $error_message = "List name cannot be empty.";
     } else {
-        // Kiểm tra xem tên mới có bị trùng với list khác của user này không
         $stmt_check = $conn->prepare("SELECT ListID FROM List WHERE UserID = ? AND ListName = ? AND ListID != ?");
         $stmt_check->bind_param("isi", $current_user_id, $new_list_name, $list_id);
         $stmt_check->execute();
@@ -32,7 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result_check->num_rows > 0) {
             $error_message = "A list with this name already exists.";
         } else {
-            // Cập nhật tên list
             $stmt_update = $conn->prepare("UPDATE List SET ListName = ? WHERE ListID = ? AND UserID = ?");
             $stmt_update->bind_param("sii", $new_list_name, $list_id, $current_user_id);
 
@@ -48,8 +44,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// 4. LẤY DỮ LIỆU LIST ĐỂ HIỂN THỊ (GET)
-// (Cũng chạy nếu POST bị lỗi để nạp lại tên cũ)
 $stmt_get = $conn->prepare("SELECT ListName FROM List WHERE ListID = ? AND UserID = ?");
 $stmt_get->bind_param("ii", $list_id, $current_user_id);
 $stmt_get->execute();
@@ -87,7 +81,6 @@ $conn->close();
     <form action="edit_list.php?id=<?php echo $list_id; ?>" method="POST">
         <div>
             <label for="list_name">List Name *</label>
-            <!-- Dùng $list['ListName'] lấy từ CSDL để điền vào value -->
             <input type="text" id="list_name" name="list_name" value="<?php echo htmlspecialchars($list['ListName']); ?>" required>
         </div>
         <div class="button-group">
