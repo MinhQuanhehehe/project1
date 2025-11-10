@@ -22,7 +22,7 @@ $lists_data = $stmt_lists->get_result();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
    $title = $_POST['title'];
    $description = $_POST['description'];
-   $due_date = $_POST['due_date'];
+   $due_date = empty($_POST['due_date']) ? NULL : $_POST['due_date'];
    $priority = $_POST['priority'];
    $list_id = !empty($_POST['list_id']) ? $_POST['list_id'] : NULL;
 
@@ -52,6 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Create Task - Todo App</title>
    <link rel="stylesheet" href="style.css">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 <div class="container">
@@ -98,8 +100,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                <option value="high">High</option>
            </select>
        </div>
-       <button type="submit" class="btn">Create Task</button>
-       <a href="home.php" class="btn btn-secondary mt-1">Cancel</a>
+       <div style="display: flex; gap: 10px;">
+           <button type="submit" class="btn">Create Task</button>
+           <a href="home.php" class="btn btn-secondary">Cancel</a>
+       </div>
    </form>
 </div>
 </body>
