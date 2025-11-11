@@ -142,7 +142,7 @@ $tasks_result = $stmt_tasks->get_result();
         <?php if ($list_filter_id !== null): ?>
             <input type="hidden" name="list_id" value="<?php echo htmlspecialchars($list_filter_id); ?>">
         <?php endif; ?>
-
+        <div>
         <div class="filter-row">
             
             <div class="filter-column">
@@ -173,7 +173,7 @@ $tasks_result = $stmt_tasks->get_result();
                     <option value="High" <?php echo ($priority_filter == 'High') ? 'selected' : ''; ?>>High</option>
                 </select>
             </div>
-            
+
             <div class="filter-column">
                 <label for="filter_end_date" class="filter-label">To Date</label>
                 <input type="date" id="filter_end_date" name="filter_end_date" 
@@ -182,9 +182,9 @@ $tasks_result = $stmt_tasks->get_result();
             </div>
 
         </div>
-
-        <div class="filter-button-container">
-            <button type="submit" class="filter-button-submit">
+        </div>
+        <div class="">
+            <button type="submit" class="btn search-btn">
                 Search
             </button>
         </div>

@@ -216,9 +216,6 @@ select:focus {
 .search-bar input[type="text"] {
     flex-grow: 1;
 }
-.search-bar .btn {
-    width: auto;
-}
 
 .list-filter-container {
     margin-bottom: 15px;
@@ -441,6 +438,8 @@ p {
 }
 
 #searchForm {
+    display: flex;
+    flex-direction: column;
     background: #f8f9fa; 
     padding: 20px; 
     border-radius: 12px; 
@@ -488,11 +487,11 @@ p {
     padding-right: 14px;
 }
 
-.filter-button-container {
-    display: flex; 
-    justify-content: center;
-    margin-top: 16px; 
-    margin-bottom: 0; 
+.search-btn {
+    width: 100%;
+    align-content: center;
+    margin-top: 16px;
+    margin-bottom: 0;
 }
 
 .filter-button-submit {
