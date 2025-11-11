@@ -113,6 +113,8 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 
 - **Tìm kiếm Task (`home.php`)**  
   - Cho phép tìm kiếm task theo **Title** hoặc **Description**
+  - Lọc các task theo mức độ ưu tiên.
+  - Lọc các task theo khoảng thời gian.
 
 ---
 
