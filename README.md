@@ -50,7 +50,7 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 - Một **User** có thể có nhiều **List**  
 - Mỗi **List** chứa nhiều **Task**  
 - Nếu **User** bị xóa → tất cả **List** và **Task** của họ cũng bị xóa (`ON DELETE CASCADE`)  
-- Nếu **List** bị xóa → tất cả **Task** trong danh sách đó cũng bị xóa (`ON DELETE CASCADE`)
+- Nếu **List** bị xóa → tất cả **Task** trong danh sách đó cũng bị xóa theo (`ON DELETE CASCADE`)
 
 ---
 
@@ -59,7 +59,7 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 ### a. Nhóm Chức Năng Xác Thực (Authentication)
 
 #### **Đăng ký (`register.php`)**
-- Cho phép người dùng mới tạo tài khoản  
+- Cho phép người dùng mới tạo tài khoản cá nhân  
 - Yêu cầu **Username** (duy nhất) và **Password**  
 - Mật khẩu được mã hóa bằng `password_hash()` trước khi lưu vào cơ sở dữ liệu  
 
