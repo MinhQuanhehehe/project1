@@ -1,4 +1,4 @@
-# Project 1: Ứng dụng Quản lý Công việc (version 2)
+# Project 1: Ứng dụng Quản lý Công việc
 
 ## 1. Tổng quan
 Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và quản lý các công việc cá nhân thông qua các danh sách công việc (Task List).
@@ -19,6 +19,11 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 | `UserID` | INT (PK) | ID định danh duy nhất |
 | `Username` | VARCHAR (UNIQUE) | Tên đăng nhập |
 | `Password` | VARCHAR | Mật khẩu (được lưu dưới dạng hash) |
+| 'FullName' | VARCHAR | Tên |
+| 'Age' | INT | Tuổi |
+| 'Role' | ENUM | Phân quyền truy cập |
+| 'Status' | ENUM | Trạng thái tài khoản |
+| 'CreatedAt' | TIMESTAMP | Ngày tạo tài khoản |
 
 ---
 
@@ -60,7 +65,8 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 #### **Đăng ký (`register.php`)**
 - Cho phép người dùng mới tạo tài khoản  
 - Yêu cầu **Username** (duy nhất) và **Password**  
-- Mật khẩu được mã hóa bằng `password_hash()` trước khi lưu vào cơ sở dữ liệu  
+- Mật khẩu được mã hóa bằng `password_hash()` trước khi lưu vào cơ sở dữ liệu
+- Mặc định tài khoản được tạo với phân quyền (user) 
 
 #### **Đăng nhập (`login.php`)**
 - Người dùng nhập thông tin đăng nhập  

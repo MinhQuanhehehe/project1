@@ -5,7 +5,12 @@ USE todo_app_db;
 CREATE TABLE IF NOT EXISTS User (
                                    UserID INT AUTO_INCREMENT PRIMARY KEY,
                                    Username VARCHAR(50) NOT NULL UNIQUE,
-                                   Password VARCHAR(255) NOT NULL
+                                   Password VARCHAR(255) NOT NULL,
+                                   FullName VARCHAR(100) NULL,
+                                   Age INT NULL,
+                                   Role  ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+                                   Status ENUM('active', 'pending_delete', 'deleted') NOT NULL DEFAULT 'active',
+                                   CreateAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 );
 
 CREATE TABLE IF NOT EXISTS List (
