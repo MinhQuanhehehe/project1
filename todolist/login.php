@@ -4,10 +4,11 @@ include 'db_connect.php';
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT UserID, Password FROM User WHERE Username = ?");
+    // LẤY THÊM ROLE VÀ STATUS
+    $stmt = $conn->prepare("SELECT UserID, Password, Role, Status FROM User WHERE Username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -16,16 +17,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user = $result->fetch_assoc();
 
         if (password_verify($password, $user['Password'])) {
-            $_SESSION['UserID'] = $user['UserID'];
-            $_SESSION['Username'] = $username;
+            
+            if ($user['Status'] !== 'active') {
+                 $error = "Tài khoản của bạn đang bị khóa hoặc chờ xóa. Vui lòng liên hệ Admin.";
+            } else {
+                $_SESSION['UserID'] = $user['UserID'];
+                $_SESSION['Username'] = $username;
+                $_SESSION['Role'] = $user['Role']; 
 
-            header("Location: home.php");
-            exit;
+                header("Location: home.php");
+                exit;
+            }
+
         } else {
-            $error = "Invalid username or password.";
+            $error = "Tên đăng nhập hoặc mật khẩu không hợp lệ.";
         }
     } else {
-        $error = "Invalid username or password.";
+        $error = "Tên đăng nhập hoặc mật khẩu không hợp lệ.";
     }
     $stmt->close();
     $conn->close();
@@ -46,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Login</h2>
 
         <?php if(!empty($error)): ?>
-            <p style="color: red; text-align: center;"><?php echo $error; ?></p>
+            <p style="color: red; text-align: center;"><?php echo htmlspecialchars($error); ?></p>
         <?php endif; ?>
 
         <div>
