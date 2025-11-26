@@ -28,7 +28,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_insert->bind_param("ssssss", $username, $hashed_password, $fullname, $age, $role, $status);
 
             if ($stmt_insert->execute()) {
-                header("Location: login.php?registered=1");
+                echo "<script>
+                        alert('Registration successful! You will be redirected to the login page.');
+                        window.location.href = 'login.php';
+                      </script>";
                 exit;
             } else {
                 $error = "Error creating account: " . $stmt_insert->error;
