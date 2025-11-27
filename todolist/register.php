@@ -7,17 +7,22 @@ $success = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
 
-    if (empty($username) || empty($password)) {
-        $error = "Username and password are required.";
-    } else {
+    if (empty($username) || empty($password) || empty($confirm_password)) {
+        $error = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.";
+    } 
+    elseif ($password !== $confirm_password) {
+        $error = "Mật khẩu xác nhận không khớp.";
+    } 
+    else {
         $stmt_check = $conn->prepare("SELECT UserID FROM User WHERE Username = ?");
         $stmt_check->bind_param("s", $username);
         $stmt_check->execute();
         $result_check = $stmt_check->get_result();
 
         if ($result_check->num_rows > 0) {
-            $error = "Username already exists. Please choose another one.";
+            $error = "Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.";
         } else {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
@@ -26,12 +31,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($stmt_insert->execute()) {
                 echo "<script>
-                        alert('Registration successful! You will be redirected to the login page.');
+                        alert('Đăng ký thành công! Bạn sẽ được chuyển hướng đến trang đăng nhập.');
                         window.location.href = 'login.php';
                       </script>";
                 exit;
             } else {
-                $error = "Error: " . $stmt_insert->error;
+                $error = "Lỗi: " . $stmt_insert->error;
             }
             $stmt_insert->close();
         }
@@ -60,12 +65,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div>
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
+            <input type="text" id="username" name="username" value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>" required>
         </div>
+        
         <div>
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
         </div>
+
+        <div>
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
+
         <button type="submit" class="btn">Register</button>
         <p class="text-center mt-1">
             Already have an account? <a href="login.php">Login here</a>
