@@ -2,10 +2,10 @@
 global $conn;
 include 'db_connect.php'; 
 
-if (!isset($_SESSION['UserID'])) {
-    header("Location: login.php");
-    exit;
-}
+//if (!isset($_SESSION['UserID'])) {
+//    header("Location: login.php");
+//    exit;
+//}
 
 $current_user_id = $_SESSION['UserID'];
 $username = $_SESSION['Username'];
@@ -127,7 +127,7 @@ $tasks_result = $stmt_tasks->get_result();
 <body>
 <div class="container">
     <div class="header">
-        <h2>Welcome, <?php echo htmlspecialchars($username); ?>!</h2>
+        <h2>Welcome, <?php echo isset($_SESSION['Username']) ? htmlspecialchars($_SESSION['Username']) : 'Guest'; ?>!</h2>
         <a href="logout.php" class="btn btn-secondary">Logout</a>
     </div>
     <div class="task-controls">
