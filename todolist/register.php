@@ -7,10 +7,15 @@ $success = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
 
-    if (empty($username) || empty($password)) {
-        $error = "Username and password are required.";
-    } else {
+    if (empty($username) || empty($password) || empty($confirm_password)) {
+        $error = "Please enter username and password.";
+    } 
+    elseif ($password !== $confirm_password) {
+        $error = "Password confirmation does not match.";
+    } 
+    else {
         $stmt_check = $conn->prepare("SELECT UserID FROM User WHERE Username = ?");
         $stmt_check->bind_param("s", $username);
         $stmt_check->execute();
@@ -60,17 +65,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div>
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
+            <input type="text" id="username" name="username" 
+                   value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>" 
+                   required>
         </div>
+        
         <div>
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
         </div>
-        <button type="submit" class="btn">Register</button>
-        <p class="text-center mt-1">
-            Already have an account? <a href="login.php">Login here</a>
-        </p>
-    </form>
-</div>
-</body>
-</html>
+
+        <div>
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" requir
