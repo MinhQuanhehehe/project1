@@ -100,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                <option value="high">High</option>
            </select>
        </div>
-       <div style="display: flex; gap: 10px;">
+       <div style="display: flex; gap: 10px; justify-content: center;">
            <button type="submit" class="btn">Create Task</button>
            <a href="home.php" class="btn btn-secondary">Cancel</a>
        </div>
