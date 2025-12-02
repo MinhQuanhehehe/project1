@@ -30,4 +30,12 @@ CREATE TABLE IF NOT EXISTS Task (
                                    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
                                    FOREIGN KEY (ListID) REFERENCES List(ListID) ON DELETE SET NULL
 );
+CREATE TABLE activity_logs (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    user_id INT NOT NULL,
+                                    action VARCHAR(255) NOT NULL,
+                                    target_type VARCHAR(50),   
+                                    target_id INT,            
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
