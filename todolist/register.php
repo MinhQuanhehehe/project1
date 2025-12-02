@@ -80,10 +80,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <label for="confirm_password">Confirm Password</label>
       <input type="password" id="confirm_password" name="confirm_password" required>
     </div>
-
-    <div style="text-align:center; margin-top: 15px;">
-      <button type="submit">Register</button>
-    </div>
+      <button type="submit" class="btn">Register</button>
+      <p class="text-center mt-1">
+          Already have an account? <a href="login.php">Login here</a>
+      </p>
   </form>
 </div>
 </body>
