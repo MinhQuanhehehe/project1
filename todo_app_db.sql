@@ -5,7 +5,12 @@ USE todo_app_db;
 CREATE TABLE IF NOT EXISTS User (
                                    UserID INT AUTO_INCREMENT PRIMARY KEY,
                                    Username VARCHAR(50) NOT NULL UNIQUE,
-                                   Password VARCHAR(255) NOT NULL
+                                   Password VARCHAR(255) NOT NULL,
+                                   FullName VARCHAR(100) NULL,
+                                   Age INT NULL,
+                                   Role  ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+                                   Status ENUM('active', 'pending_delete', 'deleted') NOT NULL DEFAULT 'active',
+                                   CreateAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 );
 
 CREATE TABLE IF NOT EXISTS List (
@@ -30,4 +35,8 @@ CREATE TABLE IF NOT EXISTS Task (
                                    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
                                    FOREIGN KEY (ListID) REFERENCES List(ListID) ON DELETE SET NULL
 );
+INSERT INTO user
+(Username, Password, FullName, Age, Role, Status)
+VALUES
+    ('ADMIN', '$2y$10$/OTlGPL.OHpNNgyrBjHeQOc1Pbr.nYFEEr6f4/ZBMelYd887UQXDG', 'administrator', 20, 'admin', 'active')
 
