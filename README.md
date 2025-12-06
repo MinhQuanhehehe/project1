@@ -46,10 +46,22 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 
 ---
 
+#### **Bảng `ListShare`**
+| Trường | Kiểu dữ liệu | Mô tả |
+|--------|--------------|------|
+| `ShareID` | INT (PK) | ID định danh duy nhất của mục chia sẻ. |
+| `ListID` | INT (FK) | Danh sách đang được chia sẻ. |
+| `SharedWithUserID` | INT(FK) | Người dùng được cấp quyền truy cập. |
+| `Permission` | ENUM | Quyền hạn truy cập của người dùng này trên danh sách đó |
+| `SharedAt` | DATETIME | Ngày/giờ thực hiện việc chia sẻ. |
+
+---
+
 ### Quan hệ giữa các bảng
 - Một **User** có thể có nhiều **List**  
 - Mỗi **List** chứa nhiều **Task**    
 - Nếu **List** bị xóa → tất cả **Task** trong danh sách đó cũng bị xóa (`ON DELETE CASCADE`)
+- Bảng **ListShare** đóng vai trò là bảng liên kết (Junction Table) để giải quyết mối quan hệ N-N này, đồng thời lưu trữ dữ liệu bổ sung là Permission (`Permission`).
 
 ---
 
