@@ -1,42 +1,54 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 global $conn;
 include 'db_connect.php';
 
-if (!isset($_SESSION['UserID'])) {
+$user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
+if (!$user_id) {
     header("Location: login.php");
     exit;
 }
-$current_user_id = $_SESSION['UserID'];
 
-if (!isset($_GET['id']) || empty($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: home.php");
     exit;
 }
 $list_id = $_GET['id'];
 $error_message = '';
 
+// Xử lý POST (Update)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_list_name = trim($_POST['list_name']);
+    $new_color = $_POST['color_code'];
 
     if (empty($new_list_name)) {
         $error_message = "List name cannot be empty.";
     } else {
-        $stmt_check = $conn->prepare("SELECT ListID FROM List WHERE UserID = ? AND ListName = ? AND ListID != ?");
-        $stmt_check->bind_param("isi", $current_user_id, $new_list_name, $list_id);
+        // Kiểm tra trùng tên
+        $stmt_check = $conn->prepare("SELECT list_id FROM Lists WHERE user_id = ? AND list_name = ? AND list_id != ?");
+        $stmt_check->bind_param("isi", $user_id, $new_list_name, $list_id);
         $stmt_check->execute();
-        $result_check = $stmt_check->get_result();
 
-        if ($result_check->num_rows > 0) {
+        if ($stmt_check->get_result()->num_rows > 0) {
             $error_message = "A list with this name already exists.";
         } else {
-            $stmt_update = $conn->prepare("UPDATE List SET ListName = ? WHERE ListID = ? AND UserID = ?");
-            $stmt_update->bind_param("sii", $new_list_name, $list_id, $current_user_id);
+            // Update
+            $stmt_update = $conn->prepare("UPDATE Lists SET list_name = ?, color_code = ? WHERE list_id = ? AND user_id = ?");
+            $stmt_update->bind_param("ssii", $new_list_name, $new_color, $list_id, $user_id);
 
             if ($stmt_update->execute()) {
+                // Log
+                $stmt_log = $conn->prepare("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES (?, 'UPDATE', 'Lists', ?, ?)");
+                $detail = "Updated list: " . $new_list_name;
+                $stmt_log->bind_param("iis", $user_id, $list_id, $detail);
+                $stmt_log->execute();
+
                 header("Location: home.php?status=list_edited");
                 exit;
             } else {
-                $error_message = "Failed to update list. Please try again.";
+                $error_message = "Failed to update list.";
             }
             $stmt_update->close();
         }
@@ -44,13 +56,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$stmt_get = $conn->prepare("SELECT ListName FROM List WHERE ListID = ? AND UserID = ?");
-$stmt_get->bind_param("ii", $list_id, $current_user_id);
+// Lấy thông tin cũ để điền vào form
+$stmt_get = $conn->prepare("SELECT list_name, color_code FROM Lists WHERE list_id = ? AND user_id = ?");
+$stmt_get->bind_param("ii", $list_id, $user_id);
 $stmt_get->execute();
 $result_get = $stmt_get->get_result();
 
 if ($result_get->num_rows != 1) {
-    // Không tìm thấy List hoặc không phải chủ sở hữu
     header("Location: home.php");
     exit;
 }
@@ -63,32 +75,30 @@ $conn->close();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit List - Todo App</title>
+    <title>Edit List - Todo App Pro</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-
 <div class="container auth-container">
     <h2>Edit List</h2>
-
     <?php if (!empty($error_message)): ?>
-        <div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div>
+        <div class="alert alert-danger" style="color: red; text-align: center; margin-bottom: 10px;"><?php echo htmlspecialchars($error_message); ?></div>
     <?php endif; ?>
 
     <form action="edit_list.php?id=<?php echo $list_id; ?>" method="POST">
         <div>
-            <label for="list_name">List Name *</label>
-            <input type="text" id="list_name" name="list_name" value="<?php echo htmlspecialchars($list['ListName']); ?>" required>
+            <label for="list_name">List Name</label>
+            <input type="text" id="list_name" name="list_name" value="<?php echo htmlspecialchars($list['list_name']); ?>" required>
         </div>
-        <div class="button-group">
+        <div>
+            <label for="color_code">Color</label>
+            <input type="color" id="color_code" name="color_code" value="<?php echo htmlspecialchars($list['color_code'] ?? '#007bff'); ?>" style="height: 40px;">
+        </div>
+        <div class="button-group" style="display: flex; gap: 10px; margin-top: 20px;">
             <button type="submit" class="btn">Save Changes</button>
             <a href="home.php" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
-
 </body>
 </html>

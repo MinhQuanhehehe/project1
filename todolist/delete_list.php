@@ -1,38 +1,55 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 global $conn;
 include 'db_connect.php';
 
-if (!isset($_SESSION['UserID'])) {
+$user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
+if (!$user_id) {
     header("Location: login.php");
     exit;
 }
-$current_user_id = $_SESSION['UserID'];
 
-if (!isset($_GET['id']) || empty($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: home.php");
     exit;
 }
 $list_id = $_GET['id'];
 
-    $stmt_delete_tasks = $conn->prepare("DELETE FROM Task WHERE ListID = ? AND UserID = ?");
-    $stmt_delete_tasks->bind_param("ii", $list_id, $current_user_id);
-    $stmt_delete_tasks->execute();
-    $stmt_delete_tasks->close();
+// Kiểm tra xác nhận xóa
+if (isset($_POST['confirm']) && $_POST['confirm'] == 'yes') {
 
-    $stmt_delete = $conn->prepare("DELETE FROM List WHERE ListID = ? AND UserID = ?");
-    $stmt_delete->bind_param("ii", $list_id, $current_user_id);
+    // Lấy tên list để ghi log
+    $stmt_get = $conn->prepare("SELECT list_name FROM Lists WHERE list_id = ? AND user_id = ?");
+    $stmt_get->bind_param("ii", $list_id, $user_id);
+    $stmt_get->execute();
+    $list_name = $stmt_get->get_result()->fetch_assoc()['list_name'] ?? 'Unknown List';
+    $stmt_get->close();
+
+    // Thực hiện xóa
+    $stmt_delete = $conn->prepare("DELETE FROM Lists WHERE list_id = ? AND user_id = ?");
+    $stmt_delete->bind_param("ii", $list_id, $user_id);
 
     if ($stmt_delete->execute()) {
+        // log
+        $stmt_log = $conn->prepare("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES (?, 'DELETE', 'Lists', ?, ?)");
+        $detail = "Deleted list: " . $list_name;
+        $stmt_log->bind_param("iis", $user_id, $list_id, $detail);
+        $stmt_log->execute();
+
         header("Location: home.php?status=list_deleted");
         exit;
     } else {
-        header("Location: home.php?status=list_delete_error");
-        exit;
+        echo "Error deleting list.";
     }
     $stmt_delete->close();
+    exit;
+}
 
-$stmt_get = $conn->prepare("SELECT ListName FROM List WHERE ListID = ? AND UserID = ?");
-$stmt_get->bind_param("ii", $list_id, $current_user_id);
+// Lấy thông tin hiển thị Form xác nhận
+$stmt_get = $conn->prepare("SELECT list_name FROM Lists WHERE list_id = ? AND user_id = ?");
+$stmt_get->bind_param("ii", $list_id, $user_id);
 $stmt_get->execute();
 $result_get = $stmt_get->get_result();
 
@@ -42,35 +59,30 @@ if ($result_get->num_rows != 1) {
 }
 $list = $result_get->fetch_assoc();
 $stmt_get->close();
-$conn->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Delete List - Todo App</title>
+    <title>Delete List - Todo App Pro</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-
 <div class="container auth-container">
-    <h2 class="text-danger">Confirm Delete</h2>
+    <h2 style="color: #dc3545;">Delete List?</h2>
 
-    <p>Are you sure you want to delete the list: <strong><?php echo htmlspecialchars($list['ListName']); ?></strong>?</p>
+    <p>Are you sure you want to delete the list: <strong><?php echo htmlspecialchars($list['list_name']); ?></strong>?</p>
 
-    <p class="text-secondary">
-    Note: All tasks in this list will be deleted.
-    </p>
+    <div style="background: #fff3cd; padding: 10px; border-radius: 5px; color: #856404; margin-bottom: 20px; font-size: 0.9em;">
+        <strong>Note:</strong> Tasks in this list will NOT be deleted. They will be moved to "Inbox" (No List).
+    </div>
 
-    <form class='button-group' action="delete_list.php?id=<?php echo $list_id; ?>&confirm=yes" method="POST" class="form-confirm-delete">
-        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <form action="delete_list.php?id=<?php echo $list_id; ?>" method="POST" style="display: flex; gap: 10px; justify-content: center;">
+        <input type="hidden" name="confirm" value="yes">
+        <button type="submit" class="btn btn-danger" style="background-color: #dc3545;">Yes, Delete</button>
         <a href="home.php" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
-
 </body>
 </html>
