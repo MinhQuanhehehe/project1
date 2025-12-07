@@ -12,5 +12,7 @@ if ($conn->connect_error) {
 
 mysqli_set_charset($conn, "utf8mb4");
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
