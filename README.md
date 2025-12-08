@@ -1,11 +1,13 @@
-# Project 1: Ứng dụng Quản lý Công việc (version 2)
+# Project 1: Todo App (version 3)
 
 ## 1. Tổng quan
-Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và quản lý các công việc cá nhân thông qua các danh sách công việc (Task List).
+Một ứng dụng web quản lý công việc toàn diện, hỗ trợ phân quyền (Admin/User), quản lý thời gian theo Ma trận Eisenhower, theo dõi tiến độ chi tiết và nhật ký hoạt động hệ thống.
 
 **Công nghệ sử dụng:**
-- **PHP:** Xử lý logic phía server  
-- **MySQL:** Lưu trữ dữ liệu
+- **Backend:** PHP (Native)
+- **Database:** MySQL
+- **Frontend:** HTML5, CSS3 (Variables, Flexbox), JavaScript
+- **Thư viện:** Chart.js (Biểu đồ thống kê), FontAwesome (Icons)
 
 ---
 
@@ -13,125 +15,131 @@ Một ứng dụng web cho phép người dùng đăng ký, đăng nhập và qu
 
 ### Cấu trúc bảng
 
-#### **Bảng `User`**
+#### **Bảng `Users`**
 | Trường | Kiểu dữ liệu | Mô tả |
 |--------|--------------|------|
-| `UserID` | INT (PK) | ID định danh duy nhất |
-| `Username` | VARCHAR (UNIQUE) | Tên đăng nhập |
-| `Password` | VARCHAR | Mật khẩu (được lưu dưới dạng hash) |
+| `user_id` | INT (PK) | ID định danh duy nhất |
+| `username` | VARCHAR (UNIQUE) | Tên đăng nhập |
+| `email` | VARCHAR (UNIQUE) | Email người dùng |
+| `password_hash` | VARCHAR | Mật khẩu (đã mã hóa) |
+| `role` | ENUM('user', 'admin') | Phân quyền hệ thống |
+| `created_at` | TIMESTAMP | Ngày tạo tài khoản |
 
----
-
-#### **Bảng `List`**
+#### **Bảng `Lists` (Danh mục)**
 | Trường | Kiểu dữ liệu | Mô tả |
 |--------|--------------|------|
-| `ListID` | INT (PK) | ID định danh danh sách |
-| `UserID` | INT (FK) | Liên kết đến `User(UserID)` |
-| `ListName` | VARCHAR | Tên danh sách công việc (VD: “Công việc học tập”, “Công việc cá nhân”) |
-| `CreatedAt` | DATETIME | Ngày tạo danh sách |
+| `list_id` | INT (PK) | ID danh sách |
+| `user_id` | INT (FK) | Liên kết `Users(user_id)` |
+| `list_name` | VARCHAR | Tên danh sách (VD: "Work", "Personal") |
+| `color_code` | VARCHAR | Mã màu hiển thị (Hex code) |
 
----
-
-#### **Bảng `Task`**
+#### **Bảng `Tags` (Nhãn)**
 | Trường | Kiểu dữ liệu | Mô tả |
 |--------|--------------|------|
-| `TaskID` | INT (PK) | ID định danh duy nhất |
-| `UserID` | INT (FK) | Liên kết đến `User(UserID)` |
-| `ListID` | INT (FK) | Liên kết đến `List(ListID)` |
-| `Title` | VARCHAR | Tiêu đề công việc |
-| `Description` | TEXT | Mô tả chi tiết |
-| `DueDate` | DATE | Ngày hết hạn |
-| `Priority` | ENUM('low','medium','high') | Mức độ ưu tiên |
-| `IsCompleted` | TINYINT(1) DEFAULT 0 | Status hoàn thành |
+| `tag_id` | INT (PK) | ID nhãn |
+| `user_id` | INT (FK) | Liên kết `Users(user_id)` |
+| `tag_name` | VARCHAR | Tên nhãn (VD: "Bug", "Feature") |
+| `color_code` | VARCHAR | Mã màu nhãn |
+
+#### **Bảng `Tasks` (Công việc)**
+| Trường | Kiểu dữ liệu | Mô tả |
+|--------|--------------|------|
+| `task_id` | INT (PK) | ID công việc |
+| `user_id` | INT (FK) | Chủ sở hữu |
+| `list_id` | INT (FK) | Thuộc danh sách nào |
+| `title` | VARCHAR | Tiêu đề công việc |
+| `description` | TEXT | Mô tả chi tiết |
+| `due_date` | DATETIME | Hạn hoàn thành |
+| `is_important` | TINYINT(1) | Ma trận Eisenhower: Quan trọng |
+| `is_urgent` | TINYINT(1) | Ma trận Eisenhower: Khẩn cấp |
+| `status` | ENUM | Trạng thái: `pending`, `in_progress`, `completed`, `canceled` |
+| `completed_at` | DATETIME | Thời gian hoàn thành |
+
+#### **Bảng `SubTasks` (Checklist)**
+| Trường | Kiểu dữ liệu | Mô tả |
+|--------|--------------|------|
+| `subtask_id` | INT (PK) | ID bước nhỏ |
+| `task_id` | INT (FK) | Thuộc Task nào |
+| `title` | VARCHAR | Nội dung bước thực hiện |
+| `is_completed` | TINYINT(1) | Trạng thái hoàn thành (0/1) |
+
+#### **Bảng `ActivityLogs` (Nhật ký hệ thống)**
+| Trường | Kiểu dữ liệu | Mô tả |
+|--------|--------------|------|
+| `log_id` | INT (PK) | ID log |
+| `user_id` | INT (FK) | Người thực hiện hành động |
+| `action_type` | VARCHAR | Loại hành động (CREATE, UPDATE, DELETE, LOGIN...) |
+| `target_table` | VARCHAR | Bảng bị tác động |
+| `details` | TEXT | Chi tiết hành động |
 
 ---
 
-### Quan hệ giữa các bảng
-- Một **User** có thể có nhiều **List**  
-- Mỗi **List** chứa nhiều **Task**  
-- Nếu **User** bị xóa → tất cả **List** và **Task** của họ cũng bị xóa (`ON DELETE CASCADE`)  
-- Nếu **List** bị xóa → tất cả **Task** trong danh sách đó cũng bị xóa (`ON DELETE CASCADE`)
+### Quan hệ dữ liệu
+- **Users - Lists/Tags:** 1-n (Một user tạo nhiều list/tag).
+- **Users - ActivityLogs:** 1-n (Ghi lại mọi hành động của user).
+- **Tasks - Tags:** n-n (Thông qua bảng trung gian `TaskTags`).
+- **Tasks - SubTasks:** 1-n (Một task có nhiều bước thực hiện).
 
 ---
 
-## 3. Chức năng
+## 3. Chức năng chi tiết
 
-### a. Nhóm Chức Năng Xác Thực (Authentication)
+### a. Phân hệ Admin (Quản trị viên)
+- **Dashboard Thống kê:**
+    - Biểu đồ tròn (Chart.js) thống kê trạng thái công việc toàn hệ thống.
+    - Xem tổng số Users, Logs và phiên bản PHP server.
+    - Xem danh sách người dùng mới nhất.
+- **Quản lý Người dùng:**
+    - Tìm kiếm user theo tên/email.
+    - Thay đổi quyền (User ↔ Admin).
+    - Reset mật khẩu user về mặc định.
+    - Xóa user (Kéo theo xóa toàn bộ dữ liệu task liên quan).
+- **Nhật ký Hoạt động:**
+    - Xem lịch sử thao tác hệ thống (Ai, làm gì, lúc nào).
+    - Bộ lọc Logs theo: User, Loại hành động, Ngày tháng.
+    - Chức năng dọn dẹp logs cũ (>30 ngày).
 
-#### **Đăng ký (`register.php`)**
-- Cho phép người dùng mới tạo tài khoản  
-- Yêu cầu **Username** (duy nhất) và **Password**  
-- Mật khẩu được mã hóa bằng `password_hash()` trước khi lưu vào cơ sở dữ liệu  
+### b. Phân hệ User (Người dùng)
 
-#### **Đăng nhập (`login.php`)**
-- Người dùng nhập thông tin đăng nhập  
-- Xác thực bằng `password_verify()`  
-- Khi đăng nhập thành công, lưu `UserID` và `Username` vào `$_SESSION` để duy trì trạng thái  
+#### **1. Authentication (Xác thực)**
+- Đăng ký/Đăng nhập bảo mật (Password Hashing).
+- Đổi mật khẩu.
+- Ghi log khi đăng nhập/đăng ký thành công.
 
-#### **Đăng xuất (`logout.php`)**
-- Xóa toàn bộ dữ liệu trong `$_SESSION`  
-- Chuyển hướng người dùng về trang `login.php`
+#### **2. Dashboard & Bộ lọc Nâng cao (`home.php`)**
+- **Hiển thị thông minh:**
+    - Cảnh báo task quá hạn (Overdue).
+    - Phân biệt các status khác nhau của task.
+- **Bộ lọc đa tiêu chí (Filter Bar):**
+    - Tìm kiếm theo từ khóa.
+    - Lọc theo List (Danh sách) hoặc Inbox.
+    - Lọc theo Tag (Nhãn).
+    - Lọc theo **Ma trận Eisenhower** (Do First, Schedule, Delegate, Don't Do).
+    - Lọc theo khoảng thời gian (From Date - To Date).
 
----
+#### **3. Quản lý Công việc (Tasks)**
+- **CRUD Task:** Tạo, Sửa, Xóa, Xem chi tiết.
+- **Trạng thái động:**
+    - Chuyển trạng thái nhanh: Pending ↔ In Progress ↔ Completed.
+    - Logic tự động:
+      - Tích vào Subtask → Task cha chuyển sang `In Progress`.
+      - Tích vào Complete Task → Tất cả Subtask chuyển thành Completed
+      - Khi Complete hoặc Cancel → Không sửa được Subtask
+- **Subtasks (Checklist):**
+    - Chia nhỏ công việc.
+    - Thanh tiến độ (Progress Bar) % hoàn thành.
+- **Gắn Tags & List:** Phân loại công việc bằng màu sắc trực quan.
 
-### b. Nhóm Chức Năng Quản lý Danh sách & Công việc
-
-#### **Quản lý Danh sách (List Management)**
-- **Hiển thị danh sách các List (`home.php`)**  
-  - Sau khi đăng nhập, hiển thị tất cả danh sách mà người dùng đã tạo  
-  - Mỗi danh sách hiển thị tên và số lượng task trong đó  
-
-- **Tạo danh sách mới (`create_list.php`)**  
-  - Form nhập tên danh sách  
-
-- **Sửa danh sách (`edit_list.php`)**  
-  - Form nhập tên danh sách để sửa
- 
-- **Xóa danh sách (`delete_list.php`)**  
-  - Window alert để xóa list
-  - 
----
-
-#### **Quản lý Công việc (Task Management)**
-- **Hiển thị danh sách Task (`list_detail.php`)**  
-  - Hiển thị tất cả task trong danh sách được chọn  
-  - Mỗi task có các nút **Edit**, **Delete**, **View Detail** và 1 `checkbox`
-
-- **Đánh dấu đã hoàn thành (`list_detail.php`)**  
-  - Cho phép người dùng hoàn thành công việc khi bấm vào checkbox
-
-- **Tạo Task mới (`create_task.php`)**  
-  - Cho phép người dùng nhập **Title**, **Description**, **DueDate**, **Priority** và chọn danh sách chứa task  
-
-- **Chỉnh sửa Task (`edit_task.php`)**  
-  - Cập nhật thông tin task (form có dữ liệu cũ)  
-
-- **Xóa Task (`delete_task.php`)**  
-  - Xóa task khỏi cơ sở dữ liệu (yêu cầu xác nhận trước khi xóa)  
-
-- **Xem chi tiết Task (`task_detail.php`)**  
-  - Hiển thị đầy đủ thông tin của một task, bao gồm mô tả, hạn và mức ưu tiên  
-
-- **Tìm kiếm Task (`home.php`)**  
-  - Cho phép tìm kiếm task theo **Title** hoặc **Description**
+#### **4. Cá nhân hóa**
+- **Quản lý Lists:** Tạo/Sửa/Xóa danh mục công việc với màu tùy chọn.
+- **Quản lý Tags:** Tạo bộ nhãn dán riêng (Bug, Feature, Urgent...) với mã màu Hex.
 
 ---
 
-### c. Nhóm Chức Năng Bảo Mật (Security)
-- **Chống SQL Injection:**  
-  - Mọi truy vấn sử dụng **Prepared Statements** (`mysqli_prepare`, `bind_param`, `execute`)  
-
-- **Bảo vệ Phiên (Session Protection):**  
-  - Các trang quản lý Task/List yêu cầu `isset($_SESSION['UserID'])`  
-  - Nếu chưa đăng nhập → chuyển hướng về `login.php`  
-
-- **Bảo vệ Quyền sở hữu (Authorization):**  
-  - Chỉ chủ sở hữu List/Task mới có quyền sửa hoặc xóa  
-  - Khi thao tác, hệ thống kiểm tra `UserID` hiện tại có trùng với `UserID` của List/Task hay không  
-
----
-
-
-
-
-
+## 4. Bảo mật & Kỹ thuật
+- **Chống SQL Injection:** Sử dụng 100% `Prepared Statements` cho mọi truy vấn database.
+- **Phân quyền truy cập:**
+    - User thường không thể truy cập trang Admin.
+    - User A không thể xem/sửa/xóa Task của User B.
+- **Audit Trail:** Mọi hành động quan trọng (Thêm/Sửa/Xóa dữ liệu) đều được ghi lại vào bảng `ActivityLogs` để tra cứu.
+- **Database Integrity:** Sử dụng khóa ngoại (`Foreign Key`) với cơ chế `ON DELETE CASCADE` để đảm bảo dữ liệu không bị rác.
