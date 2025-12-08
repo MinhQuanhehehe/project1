@@ -1,13 +1,14 @@
 <?php
 session_start();
 global $conn;
-include 'db_connect.php';
+include '../config/db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: home.php");
     exit;
 }
 
+// Filter
 $filter_user = $_GET['user'] ?? '';
 $filter_action = $_GET['action'] ?? '';
 $filter_date_from = $_GET['date_from'] ?? '';
@@ -40,6 +41,7 @@ if (!empty($filter_date_to)) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
+// Pages
 $limit = 20;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $start = ($page - 1) * $limit;
@@ -54,6 +56,7 @@ $total_rows = $stmt_count->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
 $stmt_count->close();
 
+// Data ---
 $sql = "SELECT l.*, u.username 
         FROM ActivityLogs l 
         LEFT JOIN Users u ON l.user_id = u.user_id 
@@ -82,7 +85,7 @@ function get_query_url($new_page) {
 <head>
     <meta charset="UTF-8">
     <title>System Logs - Todo App Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .admin-container {
@@ -170,6 +173,7 @@ function get_query_url($new_page) {
             transition: background 0.2s;
         }
         .btn-clear:hover { background-color: #dde2e6; }
+
 
         .pagination { display: flex; justify-content: center; margin-top: 20px; gap: 5px; }
         .page-link { padding: 8px 12px; border: 1px solid #dee2e6; color: #007bff; text-decoration: none; border-radius: 4px; }

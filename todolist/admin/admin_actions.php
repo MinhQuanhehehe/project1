@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db_connect.php';
+require '../config/db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     die("Unauthorized access");
@@ -8,9 +8,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 
 $redirect_url = $_REQUEST['redirect'] ?? 'admin.php';
 
+// Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    // Update Role
     if ($action === 'update_role') {
         $uid = $_POST['user_id'];
         $new_role = $_POST['role'];
@@ -21,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->execute()) {
                 $admin_id = $_SESSION['user_id'];
                 $log_detail = "Changed role for User ID $uid to $new_role";
-
+                // Log
                 $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) 
                               VALUES ($admin_id, 'UPDATE', 'Users', $uid, '$log_detail')");
             }
@@ -31,9 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// GET REQUESTS (Delete, Reset Pass, Clean Logs)
 $action = $_GET['action'] ?? '';
 $id = $_GET['id'] ?? 0;
 
+// Delete User
 if ($action === 'delete_user' && $id > 0) {
     if ($id == $_SESSION['user_id']) {
         echo "<script>alert('Cannot delete yourself!'); window.location='$redirect_url';</script>";
@@ -49,6 +53,7 @@ if ($action === 'delete_user' && $id > 0) {
     }
 }
 
+// Reset password
 if ($action === 'reset_pass' && $id > 0) {
     $default_pass = '123456';
     $hash = password_hash($default_pass, PASSWORD_DEFAULT);
@@ -62,6 +67,7 @@ if ($action === 'reset_pass' && $id > 0) {
     }
 }
 
+// Clean Logs
 if ($action === 'clean_logs') {
     $conn->query("DELETE FROM ActivityLogs WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)");
 }

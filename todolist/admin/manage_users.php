@@ -1,20 +1,22 @@
 <?php
 session_start();
 global $conn;
-include 'db_connect.php';
+include '../config/db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: home.php");
+    header("Location: ../home.php");
     exit;
 }
 
 $search = $_GET['search'] ?? '';
 $filter_role = $_GET['role'] ?? '';
 
+// Query build
 $where_clauses = ["1=1"];
 $params = [];
 $types = "";
 
+// Filter by name or email
 if (!empty($search)) {
     $where_clauses[] = "(username LIKE ? OR email LIKE ?)";
     $params[] = "%$search%";
@@ -22,6 +24,7 @@ if (!empty($search)) {
     $types .= "ss";
 }
 
+// Filter by Role
 if (!empty($filter_role)) {
     $where_clauses[] = "role = ?";
     $params[] = $filter_role;
@@ -45,7 +48,7 @@ $total_users = $users_result->num_rows;
 <head>
     <meta charset="UTF-8">
     <title>Manage Users - Todo App Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .admin-container {
@@ -60,7 +63,7 @@ $total_users = $users_result->num_rows;
             border: 1px solid #e9ecef;
             border-radius: 8px;
             display: flex;
-            align-items: flex-end; /* Căn đáy */
+            align-items: flex-end;
             gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 25px;

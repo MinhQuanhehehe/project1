@@ -1,30 +1,35 @@
 <?php
 session_start();
 global $conn;
-include 'db_connect.php';
+include '../config/db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: home.php");
     exit;
 }
 
+// Data Statistic
 $stats = [];
 $stats['users'] = $conn->query("SELECT COUNT(*) as total FROM Users")->fetch_assoc()['total'];
 $stats['logs'] = $conn->query("SELECT COUNT(*) as total FROM ActivityLogs")->fetch_assoc()['total'];
 
+// Data for chart
 $chart_data = [];
 $res_chart = $conn->query("SELECT status, COUNT(*) as count FROM Tasks GROUP BY status");
 while($row = $res_chart->fetch_assoc()) {
     $chart_data[$row['status']] = $row['count'];
 }
 
+// Get total tasks
 $total_system_tasks = array_sum($chart_data);
 
 $json_chart_labels = json_encode(array_keys($chart_data));
 $json_chart_values = json_encode(array_values($chart_data));
 
+// Get Users
 $users_result = $conn->query("SELECT * FROM Users ORDER BY user_id DESC LIMIT 5");
 
+// Get Logs
 $logs_result = $conn->query("SELECT l.*, u.username FROM ActivityLogs l LEFT JOIN Users u ON l.user_id = u.user_id ORDER BY l.created_at DESC LIMIT 10");
 ?>
 
@@ -33,7 +38,7 @@ $logs_result = $conn->query("SELECT l.*, u.username FROM ActivityLogs l LEFT JOI
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - Todo App Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -85,8 +90,8 @@ $logs_result = $conn->query("SELECT l.*, u.username FROM ActivityLogs l LEFT JOI
         </div>
 
         <div class="header-actions">
-            <a href="home.php" class="btn btn-secondary"><i class="fas fa-home"></i> App Home</a>
-            <a href="logout.php" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="../home.php" class="btn btn-secondary"><i class="fas fa-home"></i> App Home</a>
+            <a href="../auth/logout.php" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </div>
 

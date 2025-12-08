@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 global $conn;
-include 'db_connect.php';
+include '../config/db_connect.php';
 
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
 if (!$user_id) {
@@ -24,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($new_pass !== $confirm_pass) {
         $error = "New password and confirmation do not match.";
     } else {
+        // Take pass from db
         $stmt = $conn->prepare("SELECT password_hash FROM Users WHERE user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -32,12 +33,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
 
         if ($user && password_verify($current_pass, $user['password_hash'])) {
+            // Change Pass
             $new_hash = password_hash($new_pass, PASSWORD_DEFAULT);
 
             $stmt_update = $conn->prepare("UPDATE Users SET password_hash = ? WHERE user_id = ?");
             $stmt_update->bind_param("si", $new_hash, $user_id);
 
             if ($stmt_update->execute()) {
+                // Log
                 $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) 
                               VALUES ($user_id, 'UPDATE', 'Users', $user_id, 'User changed their own password')");
 
@@ -59,7 +62,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <title>Change Password - Todo App Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -96,7 +99,7 @@ $conn->close();
 
         <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
             <button type="submit" class="btn">Update Password</button>
-            <a href="home.php" class="btn btn-secondary" style="text-align: center;">Cancel / Back to Home</a>
+            <a href="../home.php" class="btn btn-secondary" style="text-align: center;">Cancel / Back to Home</a>
         </div>
     </form>
 </div>

@@ -1,17 +1,22 @@
 <?php
+// FILE: home.php
+// 1. KHỞI TẠO SESSION & KẾT NỐI
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 global $conn;
-include 'db_connect.php';
+include 'config/db_connect.php';
 
+// 2. KIỂM TRA ĐĂNG NHẬP
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
 if (!$user_id) {
-    header("Location: login.php");
+    header("Location: auth/login.php");
     exit;
 }
 $username = $_SESSION['username'] ?? 'User';
 
+// 3. LẤY DỮ LIỆU CHO DROPDOWN BỘ LỌC
+// Lấy danh sách Lists
 $my_lists = [];
 $stmt_lists = $conn->prepare("SELECT list_id, list_name, color_code FROM Lists WHERE user_id = ? ORDER BY list_name");
 $stmt_lists->bind_param("i", $user_id);
@@ -20,6 +25,7 @@ $res_l = $stmt_lists->get_result();
 while ($row = $res_l->fetch_assoc()) $my_lists[] = $row;
 $stmt_lists->close();
 
+// Lấy danh sách Tags
 $my_tags = [];
 $stmt_tags = $conn->prepare("SELECT tag_id, tag_name, color_code FROM Tags WHERE user_id = ? ORDER BY tag_name");
 $stmt_tags->bind_param("i", $user_id);
@@ -28,6 +34,7 @@ $res_t = $stmt_tags->get_result();
 while ($row = $res_t->fetch_assoc()) $my_tags[] = $row;
 $stmt_tags->close();
 
+// 4. XỬ LÝ THAM SỐ FILTER TỪ URL
 $search_query = isset($_GET['search_query']) ? trim($_GET['search_query']) : '';
 $filter_list_id = $_GET['list_id'] ?? '';
 $filter_tag_id = $_GET['tag_id'] ?? '';
@@ -35,6 +42,8 @@ $filter_matrix = $_GET['matrix_filter'] ?? '';
 $filter_start_date = $_GET['start_date'] ?? '';
 $filter_end_date = $_GET['end_date'] ?? '';
 
+// 5. TẠO DÒNG MÔ TẢ BỘ LỌC (Breadcrumb Title)
+// Phần này hiển thị style đúng chuẩn: List nền đặc, Tag viền màu
 $filter_desc = [];
 
 if (!empty($search_query)) {
@@ -78,6 +87,8 @@ if (!empty($filter_end_date)) $filter_desc[] = "To: <strong>" . htmlspecialchars
 $current_filter_text = empty($filter_desc) ? "All Tasks" : implode(" <span style='color:#ccc; margin:0 5px'>|</span> ", $filter_desc);
 
 
+// 6. XÂY DỰNG QUERY (TỐI ƯU HÓA)
+// GROUP_CONCAT: Gom Tags thành chuỗi "Name^Color|Name^Color"
 $sql = "SELECT t.*, 
                l.list_name, 
                l.color_code,
@@ -91,7 +102,9 @@ $sql = "SELECT t.*,
 $params = [$user_id];
 $types = "i";
 
+// -- Áp dụng các điều kiện lọc --
 
+// Lọc List
 if ($filter_list_id !== '') {
     if ($filter_list_id === 'inbox') $sql .= " AND t.list_id IS NULL";
     else {
@@ -101,12 +114,14 @@ if ($filter_list_id !== '') {
     }
 }
 
+// Lọc Tag (Quan trọng: Dùng EXISTS để không ảnh hưởng hiển thị các tag khác)
 if (!empty($filter_tag_id)) {
     $sql .= " AND EXISTS (SELECT 1 FROM TaskTags sub_tt WHERE sub_tt.task_id = t.task_id AND sub_tt.tag_id = ?)";
     $params[] = $filter_tag_id;
     $types .= "i";
 }
 
+// Lọc Keyword
 if (!empty($search_query)) {
     $sql .= " AND (t.title LIKE ? OR t.description LIKE ?)";
     $like = "%$search_query%";
@@ -115,6 +130,7 @@ if (!empty($search_query)) {
     $types .= "ss";
 }
 
+// Lọc Matrix
 if (!empty($filter_matrix)) {
     switch ($filter_matrix) {
         case 'do_first': $sql .= " AND t.is_important = 1 AND t.is_urgent = 1"; break;
@@ -124,10 +140,13 @@ if (!empty($filter_matrix)) {
     }
 }
 
+// Lọc Ngày
 if (!empty($filter_start_date)) { $sql .= " AND DATE(t.due_date) >= ?"; $params[] = $filter_start_date; $types .= "s"; }
 if (!empty($filter_end_date)) { $sql .= " AND DATE(t.due_date) <= ?"; $params[] = $filter_end_date; $types .= "s"; }
 
+// Group & Order
 $sql .= " GROUP BY t.task_id";
+// Thứ tự: Chưa xong lên trước -> Quan trọng -> Khẩn cấp -> Ngày gần nhất
 $sql .= " ORDER BY (t.status = 'completed') ASC, (t.status = 'canceled') ASC, t.is_important DESC, t.is_urgent DESC, t.due_date ASC";
 
 $stmt = $conn->prepare($sql);
@@ -144,7 +163,7 @@ $tasks_result = $stmt->get_result();
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Dashboard - Todo App Pro</title>
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="assets/css/style.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             .filter-status-bar { display: flex; align-items: center; justify-content: space-between; }
@@ -158,29 +177,30 @@ $tasks_result = $stmt->get_result();
                 <h2>Hello, <?php echo htmlspecialchars($username); ?>!</h2>
 
                 <?php
+                // Nút Admin (giữ nguyên nếu đã có)
                 if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):
                     ?>
-                    <a href="admin.php" class="btn" style="background-color: #6f42c1; padding: 0 15px;" title="Admin Dashboard">
+                    <a href="admin/admin.php" class="btn" style="background-color: #6f42c1; padding: 0 15px;" title="Admin Dashboard">
                         <i class="fas fa-user-shield"></i>
                     </a>
                 <?php endif; ?>
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <a href="change_password.php" class="btn btn-secondary" style="background-color: #17a2b8;" title="Change Password">
+                <a href="auth/change_password.php" class="btn btn-secondary" style="background-color: #17a2b8;" title="Change Password">
                     <i class="fas fa-key"></i>
                 </a>
 
-                <a href="logout.php" class="btn btn-secondary" title="Logout">
+                <a href="auth/logout.php" class="btn btn-secondary" title="Logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
         </div>
 
         <div class="task-controls">
-            <a href="create_task.php" class="btn"><i class="fas fa-plus"></i> New Task</a>
-            <a href="manage_lists.php" class="btn btn-secondary"><i class="fas fa-folder-plus"></i>Manage List</a>
-            <a href="manage_tags.php" class="btn btn-secondary"><i class="fas fa-tags"></i>Manage Tags</a>
+            <a href="modules/tasks/create_task.php" class="btn"><i class="fas fa-plus"></i> New Task</a>
+            <a href="modules/lists/manage_lists.php" class="btn btn-secondary"><i class="fas fa-folder-plus"></i>Manage List</a>
+            <a href="modules/tags/manage_tags.php" class="btn btn-secondary"><i class="fas fa-tags"></i>Manage Tags</a>
         </div>
 
         <div class="search-bar">
@@ -255,7 +275,7 @@ $tasks_result = $stmt->get_result();
 
                     <div class="task-item <?php echo $css_class; ?>" style="<?php echo $is_doing ? 'border-left: 4px solid #007bff;' : ''; ?>">
 
-                        <a href="toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none;">
+                        <a href="modules/tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none;">
                             <?php if ($is_completed): ?>
                                 <i class="fas fa-check-square" style="color: #28a745; font-size: 24px;" title="Done! Click to Re-open"></i>
                             <?php elseif ($is_doing): ?>
@@ -269,7 +289,7 @@ $tasks_result = $stmt->get_result();
 
                         <div style="flex-grow: 1;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <a href="task_detail.php?id=<?php echo $task['task_id']; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
+                                <a href="modules/tasks/task_detail.php?id=<?php echo $task['task_id']; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
                                     <?php echo htmlspecialchars($task['title']); ?>
                                 </a>
                                 <?php if ($is_doing): ?>
@@ -317,12 +337,12 @@ $tasks_result = $stmt->get_result();
 
                         <div class="task-actions">
                             <?php if (!$is_canceled && !$is_completed): ?>
-                                <a href="cancel_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon" style="background-color: #6c757d;" title="Cancel Task" onclick="return confirm('Cancel this task?');">
+                                <a href="modules/tasks/cancel_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon" style="background-color: #6c757d;" title="Cancel Task" onclick="return confirm('Cancel this task?');">
                                     <i class="fas fa-ban"></i>
                                 </a>
                             <?php endif; ?>
-                            <a href="edit_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-edit" title="Edit"><i class="fas fa-pen"></i></a>
-                            <a href="delete_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-delete" title="Delete" onclick="return confirm('Delete this task?');"><i class="fas fa-trash"></i></a>
+                            <a href="modules/tasks/edit_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-edit" title="Edit"><i class="fas fa-pen"></i></a>
+                            <a href="modules/tasks/delete_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-delete" title="Delete" onclick="return confirm('Delete this task?');"><i class="fas fa-trash"></i></a>
                         </div>
                     </div>
                 <?php endwhile; ?>

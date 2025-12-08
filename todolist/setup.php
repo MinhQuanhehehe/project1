@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+include 'config/db_connect.php';
 
 echo "<h2>System Setup...</h2>";
 
@@ -28,6 +28,7 @@ if ($result->num_rows > 0) {
                 <li>Password: <strong>$default_pass</strong></li>
               </ul>";
 
+        // Log
         $new_id = $conn->insert_id;
         $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) 
                       VALUES ($new_id, 'CREATE', 'Users', $new_id, 'System auto-generated Admin account')");
@@ -40,5 +41,5 @@ if ($result->num_rows > 0) {
 $check->close();
 $conn->close();
 
-echo "<br><a href='login.php'>Go to Login Page</a>";
+echo "<br><a href='auth/login.php'>Go to Login Page</a>";
 ?>
