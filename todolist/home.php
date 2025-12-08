@@ -12,8 +12,6 @@ if (!$user_id) {
 }
 $username = $_SESSION['username'] ?? 'User';
 
-// Filter Feature
-// Query Lists
 $my_lists = [];
 $stmt_lists = $conn->prepare("SELECT list_id, list_name, color_code FROM Lists WHERE user_id = ? ORDER BY list_name");
 $stmt_lists->bind_param("i", $user_id);
@@ -22,7 +20,6 @@ $res_l = $stmt_lists->get_result();
 while ($row = $res_l->fetch_assoc()) $my_lists[] = $row;
 $stmt_lists->close();
 
-// Query Tags
 $my_tags = [];
 $stmt_tags = $conn->prepare("SELECT tag_id, tag_name, color_code FROM Tags WHERE user_id = ? ORDER BY tag_name");
 $stmt_tags->bind_param("i", $user_id);
@@ -31,7 +28,6 @@ $res_t = $stmt_tags->get_result();
 while ($row = $res_t->fetch_assoc()) $my_tags[] = $row;
 $stmt_tags->close();
 
-// Processing filter
 $search_query = isset($_GET['search_query']) ? trim($_GET['search_query']) : '';
 $filter_list_id = $_GET['list_id'] ?? '';
 $filter_tag_id = $_GET['tag_id'] ?? '';
@@ -39,7 +35,6 @@ $filter_matrix = $_GET['matrix_filter'] ?? '';
 $filter_start_date = $_GET['start_date'] ?? '';
 $filter_end_date = $_GET['end_date'] ?? '';
 
-// Filter title
 $filter_desc = [];
 
 if (!empty($search_query)) {
@@ -52,6 +47,7 @@ if ($filter_list_id !== '') {
     } else {
         foreach ($my_lists as $l) {
             if ($l['list_id'] == $filter_list_id) {
+                // Style: Background Color (Solid)
                 $filter_desc[] = "List: <span class='badge-pill' style='background-color: " . htmlspecialchars($l['color_code']) . "'><i class='fas fa-folder-open'></i> " . htmlspecialchars($l['list_name']) . "</span>";
                 break;
             }
@@ -62,6 +58,7 @@ if ($filter_list_id !== '') {
 if (!empty($filter_tag_id)) {
     foreach ($my_tags as $t) {
         if ($t['tag_id'] == $filter_tag_id) {
+            // Style: Border Color (Outline)
             $filter_desc[] = "Tag: <span class='tag-pill' style='color: " . htmlspecialchars($t['color_code']) . "; border-color: " . htmlspecialchars($t['color_code']) . "'><i class='fas fa-tag'></i> " . htmlspecialchars($t['tag_name']) . "</span>";
             break;
         }
@@ -81,8 +78,6 @@ if (!empty($filter_end_date)) $filter_desc[] = "To: <strong>" . htmlspecialchars
 $current_filter_text = empty($filter_desc) ? "All Tasks" : implode(" <span style='color:#ccc; margin:0 5px'>|</span> ", $filter_desc);
 
 
-// SQL code
-// GROUP_CONCAT: Gom Tags thành chuỗi "Name^Color|Name^Color"
 $sql = "SELECT t.*, 
                l.list_name, 
                l.color_code,
@@ -96,7 +91,7 @@ $sql = "SELECT t.*,
 $params = [$user_id];
 $types = "i";
 
-// Lọc List
+
 if ($filter_list_id !== '') {
     if ($filter_list_id === 'inbox') $sql .= " AND t.list_id IS NULL";
     else {
@@ -106,14 +101,12 @@ if ($filter_list_id !== '') {
     }
 }
 
-// Lọc Tag (Quan trọng: Dùng EXISTS để không ảnh hưởng hiển thị các tag khác)
 if (!empty($filter_tag_id)) {
     $sql .= " AND EXISTS (SELECT 1 FROM TaskTags sub_tt WHERE sub_tt.task_id = t.task_id AND sub_tt.tag_id = ?)";
     $params[] = $filter_tag_id;
     $types .= "i";
 }
 
-// Lọc Keyword
 if (!empty($search_query)) {
     $sql .= " AND (t.title LIKE ? OR t.description LIKE ?)";
     $like = "%$search_query%";
@@ -122,7 +115,6 @@ if (!empty($search_query)) {
     $types .= "ss";
 }
 
-// Lọc Matrix
 if (!empty($filter_matrix)) {
     switch ($filter_matrix) {
         case 'do_first': $sql .= " AND t.is_important = 1 AND t.is_urgent = 1"; break;
@@ -132,13 +124,10 @@ if (!empty($filter_matrix)) {
     }
 }
 
-// Lọc Ngày
 if (!empty($filter_start_date)) { $sql .= " AND DATE(t.due_date) >= ?"; $params[] = $filter_start_date; $types .= "s"; }
 if (!empty($filter_end_date)) { $sql .= " AND DATE(t.due_date) <= ?"; $params[] = $filter_end_date; $types .= "s"; }
 
-// Group & Order
 $sql .= " GROUP BY t.task_id";
-// Thứ tự: Chưa xong lên trước -> Quan trọng -> Khẩn cấp -> Ngày gần nhất
 $sql .= " ORDER BY (t.status = 'completed') ASC, (t.status = 'canceled') ASC, t.is_important DESC, t.is_urgent DESC, t.due_date ASC";
 
 $stmt = $conn->prepare($sql);
@@ -165,8 +154,27 @@ $tasks_result = $stmt->get_result();
     <div class="container">
 
         <div class="header">
-            <h2>Hello, <?php echo htmlspecialchars($username); ?>!</h2>
-            <a href="logout.php" class="btn btn-secondary" title="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h2>Hello, <?php echo htmlspecialchars($username); ?>!</h2>
+
+                <?php
+                if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):
+                    ?>
+                    <a href="admin.php" class="btn" style="background-color: #6f42c1; padding: 0 15px;" title="Admin Dashboard">
+                        <i class="fas fa-user-shield"></i>
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <a href="change_password.php" class="btn btn-secondary" style="background-color: #17a2b8;" title="Change Password">
+                    <i class="fas fa-key"></i>
+                </a>
+
+                <a href="logout.php" class="btn btn-secondary" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
         </div>
 
         <div class="task-controls">
