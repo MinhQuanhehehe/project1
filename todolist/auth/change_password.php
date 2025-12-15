@@ -1,107 +1,198 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 global $conn;
 include '../config/db_connect.php';
 
-$user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
+// Check Authentication
+$user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
-    header("Location: login.php");
+    header("Location: auth/login.php");
     exit;
 }
 
-$error = '';
-$success = '';
+$message = "";
+$msg_type = ""; // 'success' or 'error'
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $current_pass = $_POST['current_password'];
-    $new_pass = $_POST['new_password'];
-    $confirm_pass = $_POST['confirm_password'];
+// Handle Form Submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $current_password = $_POST['current_password'] ?? '';
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (empty($current_pass) || empty($new_pass) || empty($confirm_pass)) {
-        $error = "Please fill in all fields.";
-    } elseif ($new_pass !== $confirm_pass) {
-        $error = "New password and confirmation do not match.";
+    // 1. Validate input
+    if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
+        $message = "Please fill in all fields.";
+        $msg_type = "error";
+    } elseif ($new_password !== $confirm_password) {
+        $message = "New passwords do not match.";
+        $msg_type = "error";
+    } elseif (strlen($new_password) < 6) {
+        $message = "New password must be at least 6 characters long.";
+        $msg_type = "error";
     } else {
-        // Take pass from db
-        $stmt = $conn->prepare("SELECT password_hash FROM Users WHERE user_id = ?");
+        // 2. Fetch current password hash from DB
+        $stmt = $conn->prepare("SELECT password FROM Users WHERE user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stmt->close();
 
-        if ($user && password_verify($current_pass, $user['password_hash'])) {
-            // Change Pass
-            $new_hash = password_hash($new_pass, PASSWORD_DEFAULT);
+        if ($row = $result->fetch_assoc()) {
+            // 3. Verify current password
+            if (password_verify($current_password, $row['password'])) {
+                // 4. Hash new password and update
+                $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
 
-            $stmt_update = $conn->prepare("UPDATE Users SET password_hash = ? WHERE user_id = ?");
-            $stmt_update->bind_param("si", $new_hash, $user_id);
+                $update_stmt = $conn->prepare("UPDATE Users SET password = ? WHERE user_id = ?");
+                $update_stmt->bind_param("si", $new_hash, $user_id);
 
-            if ($stmt_update->execute()) {
-                // Log
-                $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) 
-                              VALUES ($user_id, 'UPDATE', 'Users', $user_id, 'User changed their own password')");
-
-                $success = "Password changed successfully!";
+                if ($update_stmt->execute()) {
+                    $message = "Password changed successfully!";
+                    $msg_type = "success";
+                } else {
+                    $message = "System error, please try again later.";
+                    $msg_type = "error";
+                }
             } else {
-                $error = "Error updating password.";
+                $message = "Incorrect current password.";
+                $msg_type = "error";
             }
-            $stmt_update->close();
-        } else {
-            $error = "Current password is incorrect.";
         }
     }
 }
-$conn->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Change Password - Todo App Pro</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Change Password - Todo Pro</title>
+    <link rel="stylesheet" href="../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Form Card Styling */
+        .form-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn-submit {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: #2980b9;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-error {
+            background-color: #fce4e4;
+            color: #c0392b;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
 </head>
 <body>
-<div class="container auth-container">
-    <form action="change_password.php" method="POST">
-        <h2><i class="fas fa-key"></i> Change Password</h2>
 
-        <?php if(!empty($error)): ?>
-            <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-                <?php echo htmlspecialchars($error); ?>
+<?php
+$path_to_root = '../';
+include '../includes/sidebar.php';
+?>
+
+<div class="main-content">
+    <div style="margin-bottom: 30px;">
+        <h2 style="margin: 0; color: #2c3e50;">Change Password</h2>
+        <p style="color: #7f8c8d;">Update your security credentials.</p>
+    </div>
+
+    <div class="form-card">
+
+        <?php if (!empty($message)): ?>
+            <div class="alert <?php echo ($msg_type == 'error') ? 'alert-error' : 'alert-success'; ?>">
+                <?php if($msg_type == 'error'): ?>
+                    <i class="fas fa-exclamation-circle"></i>
+                <?php else: ?>
+                    <i class="fas fa-check-circle"></i>
+                <?php endif; ?>
+                <?php echo htmlspecialchars($message); ?>
             </div>
         <?php endif; ?>
 
-        <?php if(!empty($success)): ?>
-            <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-                <?php echo htmlspecialchars($success); ?>
+        <form action="" method="POST">
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" name="current_password" class="form-control" placeholder="Enter current password" required>
             </div>
-        <?php endif; ?>
 
-        <div>
-            <label>Current Password</label>
-            <input type="password" name="current_password" required placeholder="Enter current password">
-        </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" name="new_password" class="form-control" placeholder="Enter new password (min 6 chars)" required>
+            </div>
 
-        <div>
-            <label>New Password</label>
-            <input type="password" name="new_password" required placeholder="Enter new password">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter new password" required>
+            </div>
 
-        <div>
-            <label>Confirm New Password</label>
-            <input type="password" name="confirm_password" required placeholder="Re-enter new password">
-        </div>
-
-        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-            <button type="submit" class="btn">Update Password</button>
-            <a href="../home.php" class="btn btn-secondary" style="text-align: center;">Cancel / Back to Home</a>
-        </div>
-    </form>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Update Password
+            </button>
+        </form>
+    </div>
 </div>
+
 </body>
 </html>

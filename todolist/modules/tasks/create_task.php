@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST['title']);
     $description = $_POST['description'];
     $due_date = empty($_POST['due_date']) ? NULL : $_POST['due_date'];
-    $list_id = !empty($_POST['list_id']) ? $_POST['list_id'] : NULL;
+    $list_id = !empty($_POST['list_id']) ? $_POST['list_id'] : ($_GET['list_id'] ?? NULL);
     $is_important = isset($_POST['is_important']) ? 1 : 0;
     $is_urgent = isset($_POST['is_urgent']) ? 1 : 0;
     $selected_tags = isset($_POST['tags']) ? $_POST['tags'] : [];
@@ -58,91 +58,107 @@ $conn->close();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Create Task - Todo App Pro</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <title>Create New Task</title>
+    <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-<div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Create New Task</h2>
-        <a href="../tags/manage_tags.php" class="btn btn-secondary" style="font-size: 0.8em; padding: 5px 10px;">
-            <i class="fas fa-tags"></i> Manage Tags
+
+<?php
+$path_to_root = '../../';
+include '../../includes/sidebar.php';
+?>
+
+<div class="main-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-plus-circle"></i> Create New Task</h2>
+        <a href="../../home.php" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
-    <?php if(!empty($error)): ?>
-        <p style="color: red; text-align: center;"><?php echo htmlspecialchars($error); ?></p>
-    <?php endif; ?>
-
-    <form action="" method="POST">
-        <div>
-            <label>Title *</label>
-            <input type="text" name="title" required placeholder="What needs to be done?">
-        </div>
-
-        <div>
-            <label>Description</label>
-            <textarea name="description" placeholder="Add details..."></textarea>
-        </div>
-
-        <div style="display: flex; gap: 20px;">
-            <div style="flex: 1;">
-                <label>List</label>
-                <select name="list_id">
-                    <option value="">-- Inbox --</option>
-                    <?php while($list = $lists->fetch_assoc()): ?>
-                        <option value="<?php echo $list['list_id']; ?>"><?php echo htmlspecialchars($list['list_name']); ?></option>
-                    <?php endwhile; ?>
-                </select>
+    <div class="form-card">
+        <?php if(!empty($error)): ?>
+            <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+                <?php echo htmlspecialchars($error); ?>
             </div>
-            <div style="flex: 1;">
-                <label>Due Date</label>
-                <input type="datetime-local" name="due_date">
-            </div>
-        </div>
+        <?php endif; ?>
 
-        <div style="margin-top: 15px;">
-            <label><i class="fas fa-tag"></i> Tags</label>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; background: #fff; border: 1px solid #ced4da; border-radius: 8px;">
-                <?php
-                if ($tags->num_rows > 0):
-                    while($tag = $tags->fetch_assoc()):
-                        ?>
-                        <label style="display: inline-flex; align-items: center; cursor: pointer; margin-bottom: 0; font-weight: normal;">
-                            <input type="checkbox" name="tags[]" value="<?php echo $tag['tag_id']; ?>" style="width: auto; margin-right: 5px;">
-                            <span style="color: <?php echo $tag['color_code']; ?>; font-weight: bold;">
-                            <?php echo htmlspecialchars($tag['tag_name']); ?>
-                        </span>
-                        </label>
-                    <?php
-                    endwhile;
-                else:
-                    ?>
-                    <span style="color: #888; font-size: 0.9em;">No tags created yet.
-                        <a href="../tags/manage_tags.php">Create one?</a>
-                    </span>
-                <?php endif; ?>
+        <form action="" method="POST">
+            <div class="form-group">
+                <label>Task Title <span style="color:red">*</span></label>
+                <input type="text" name="title" required placeholder="What needs to be done?" class="form-control" style="font-size: 1.1em; padding: 12px;">
             </div>
-        </div>
 
-        <div style="margin-top: 20px;">
-            <label>Priority Matrix</label>
-            <div class="eisenhower-group" style="display: flex; gap: 20px; padding: 10px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" name="is_important" value="1" style="width: auto; margin-right: 8px;"> Important
-                </label>
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" name="is_urgent" value="1" style="width: auto; margin-right: 8px;"> Urgent
-                </label>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="4" placeholder="Add details, notes, links..." class="form-control"></textarea>
             </div>
-        </div>
 
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button type="submit" class="btn">Create Task</button>
-            <a href="../../home.php" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Add to List</label>
+                    <select name="list_id" class="form-control">
+                        <option value="">-- Inbox --</option>
+                        <?php while($list = $lists->fetch_assoc()):
+                            $selected = ($list['list_id'] == $list_id) ? 'selected' : '';
+                            ?>
+                            <option value="<?php echo $list['list_id']; ?>" <?php echo $selected; ?>>
+                                <?php echo htmlspecialchars($list['list_name']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>Due Date</label>
+                    <input type="datetime-local" name="due_date" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin-bottom: 0;"><i class="fas fa-tags"></i> Tags</label>
+                    <a href="../tags/manage_tags.php" style="font-size: 0.85em; color: #3498db; text-decoration: none;">
+                        <i class="fas fa-plus"></i> Manage Tags
+                    </a>
+                </div>
+
+                <div class="tag-selection-box">
+                    <?php if ($tags->num_rows > 0): ?>
+                        <?php while($tag = $tags->fetch_assoc()): ?>
+                            <label class="tag-checkbox">
+                                <input type="checkbox" name="tags[]" value="<?php echo $tag['tag_id']; ?>">
+                                <span style="color: <?php echo $tag['color_code']; ?>; border-color: <?php echo $tag['color_code']; ?>;">
+                                    <?php echo htmlspecialchars($tag['tag_name']); ?>
+                                </span>
+                            </label>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <span style="color: #888; font-size: 0.9em;">No tags found.</span>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Priority Matrix</label>
+                <div class="priority-group">
+                    <label class="priority-option">
+                        <input type="checkbox" name="is_important" value="1">
+                        <span style="color: #f1c40f;"><i class="fas fa-star"></i> Important</span>
+                    </label>
+                    <label class="priority-option">
+                        <input type="checkbox" name="is_urgent" value="1">
+                        <span style="color: #e74c3c;"><i class="fas fa-fire"></i> Urgent</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary-large">Create Task</button>
+            </div>
+        </form>
+    </div>
 </div>
 </body>
 </html>
