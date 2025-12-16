@@ -33,10 +33,9 @@
 }
 
 body {
-    /* Áp dụng lớp phủ tối (40% đen) lên trên hình nền */
     background: 
-        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), /* <--- LỚP PHỦ MÀU ĐEN */
-        url('backiee-282524.jpg') no-repeat center center fixed; /* <--- Hình nền gốc */
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+        url('backiee-282524.jpg') no-repeat center center fixed; 
 
     background-size: cover; /* Đảm bảo cả lớp phủ và hình nền đều phủ đầy */
     font-family: var(--font-family);
