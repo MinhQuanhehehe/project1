@@ -179,7 +179,7 @@ include '../../includes/sidebar.php';
                     <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
                 </div>
                 <div class="filter-column" style="flex: 0;">
-                    <a href="index.php" class="btn btn-secondary" title="Clear Filters"><i class="fas fa-times"></i></a>
+                    <a href="tasks.php" class="btn btn-secondary" title="Clear Filters"><i class="fas fa-times"></i></a>
                 </div>
             </div>
         </form>
