@@ -166,195 +166,208 @@ $tasks_result = $stmt->get_result();
         <link rel="stylesheet" href="assets/css/style.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
+            /* Chỉ giữ lại style cần thiết, phần còn lại đã chuyển vào style.css */
             .filter-status-bar { display: flex; align-items: center; justify-content: space-between; }
         </style>
     </head>
     <body>
-    <div class="container">
+    <div class="app-layout"> <div class="sidebar">
+            <div class="sidebar-header">
+                Todo App Pro
+            </div>
+            
+            <a href="modules/tasks/create_task.php" class="btn" style="width: 100%; margin-bottom: 25px;"><i class="fas fa-plus"></i> New Task</a>
 
-        <div class="header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <h2>Hello, <?php echo htmlspecialchars($username); ?>!</h2>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a href="home.php" class="active"><i class="fas fa-tasks"></i> My Tasks</a>
+                </li>
 
+                <li class="sidebar-nav-item">
+                    <a href="modules/lists/manage_lists.php"><i class="fas fa-folder-plus"></i> Manage Lists</a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="modules/tags/manage_tags.php"><i class="fas fa-tags"></i> Manage Tags</a>
+                </li>
                 <?php
                 // Nút Admin (giữ nguyên nếu đã có)
                 if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):
                     ?>
-                    <a href="admin/admin.php" class="btn" style="background-color: #6f42c1; padding: 0 15px;" title="Admin Dashboard">
-                        <i class="fas fa-user-shield"></i>
-                    </a>
+                    <li class="sidebar-nav-item">
+                        <a href="admin/admin.php" style="background-color: #6f42c1; color: white;"><i class="fas fa-user-shield"></i> Admin Dashboard</a>
+                    </li>
                 <?php endif; ?>
-            </div>
-
-            <div style="display: flex; gap: 10px;">
-                <a href="auth/change_password.php" class="btn btn-secondary" style="background-color: #17a2b8;" title="Change Password">
-                    <i class="fas fa-key"></i>
-                </a>
-
-                <a href="auth/logout.php" class="btn btn-secondary" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
+            </ul>
+            
+            <div class="sidebar-user-info">
+                <p>Logged in as: <strong><?php echo htmlspecialchars($username); ?></strong></p>
+                <div class="sidebar-action-btns">
+                    <a href="auth/change_password.php" class="btn btn-secondary btn-small" style="background-color: #17a2b8;" title="Change Password">
+                        <i class="fas fa-key"></i>
+                    </a>
+                    <a href="auth/logout.php" class="btn btn-danger btn-small" style="flex-grow: 1;" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
             </div>
         </div>
 
-        <div class="task-controls">
-            <a href="modules/tasks/create_task.php" class="btn"><i class="fas fa-plus"></i> New Task</a>
-            <a href="modules/lists/manage_lists.php" class="btn btn-secondary"><i class="fas fa-folder-plus"></i>Manage List</a>
-            <a href="modules/tags/manage_tags.php" class="btn btn-secondary"><i class="fas fa-tags"></i>Manage Tags</a>
-        </div>
-
-        <div class="search-bar">
-            <form action="home.php" method="GET" id="filterForm">
-                <div class="filter-row" style="margin-bottom: 10px;">
-                    <div class="filter-column" style="flex: 2;">
-                        <input type="text" name="search_query" placeholder="Search tasks..." value="<?php echo htmlspecialchars($search_query); ?>" class="filter-field">
-                    </div>
-                    <div class="filter-column">
-                        <select name="list_id" onchange="this.form.submit()" class="filter-field">
-                            <option value="">All Lists</option>
-                            <option value="inbox" <?php echo $filter_list_id === 'inbox' ? 'selected' : ''; ?>>Inbox</option>
-                            <?php foreach ($my_lists as $l) echo "<option value='{$l['list_id']}' ".($filter_list_id == $l['list_id']?'selected':'').">".htmlspecialchars($l['list_name'])."</option>"; ?>
-                        </select>
-                    </div>
-                    <div class="filter-column">
-                        <select name="tag_id" onchange="this.form.submit()" class="filter-field">
-                            <option value="">All Tags</option>
-                            <?php foreach ($my_tags as $t) echo "<option value='{$t['tag_id']}' ".($filter_tag_id == $t['tag_id']?'selected':'').">".htmlspecialchars($t['tag_name'])."</option>"; ?>
-                        </select>
-                    </div>
+        <div class="main-content">
+            <div class="dashboard-container"> <div class="header">
+                    <h2>My Tasks Dashboard</h2>
                 </div>
 
-                <div class="filter-row">
-                    <div class="filter-column">
-                        <select name="matrix_filter" onchange="this.form.submit()" class="filter-field">
-                            <option value="">All Priorities</option>
-                            <option value="do_first" <?php echo $filter_matrix === 'do_first' ? 'selected' : ''; ?>>🔴 Do First</option>
-                            <option value="schedule" <?php echo $filter_matrix === 'schedule' ? 'selected' : ''; ?>>🔵 Schedule</option>
-                            <option value="delegate" <?php echo $filter_matrix === 'delegate' ? 'selected' : ''; ?>>🟡 Delegate</option>
-                            <option value="dont_do" <?php echo $filter_matrix === 'dont_do' ? 'selected' : ''; ?>>⚪ Don't Do</option>
-                        </select>
-                    </div>
-                    <div class="filter-column filter-date-group">
-                        <input type="date" name="start_date" value="<?php echo htmlspecialchars($filter_start_date); ?>" class="filter-field">
-                        <span>to</span>
-                        <input type="date" name="end_date" value="<?php echo htmlspecialchars($filter_end_date); ?>" class="filter-field">
-                    </div>
-                    <div class="filter-column" style="flex: 0;">
-                        <button type="submit" class="btn btn-secondary" title="Apply Filter"><i class="fas fa-filter"></i></button>
-                    </div>
-                    <div class="filter-column" style="flex: 0;">
-                        <a href="home.php" class="btn btn-secondary" title="Clear Filters" style="background: #e2e6ea; color: #333;"><i class="fas fa-times"></i></a>
-                    </div>
+                <div class="search-bar">
+                    <form action="home.php" method="GET" id="filterForm">
+                        <div class="filter-row" style="margin-bottom: 10px;">
+                            <div class="filter-column" style="flex: 2;">
+                                <input type="text" name="search_query" placeholder="Search tasks..." value="<?php echo htmlspecialchars($search_query); ?>" class="filter-field">
+                            </div>
+                            <div class="filter-column">
+                                <select name="list_id" onchange="this.form.submit()" class="filter-field">
+                                    <option value="">All Lists</option>
+                                    <option value="inbox" <?php echo $filter_list_id === 'inbox' ? 'selected' : ''; ?>>Inbox</option>
+                                    <?php foreach ($my_lists as $l) echo "<option value='{$l['list_id']}' ".($filter_list_id == $l['list_id']?'selected':'').">".htmlspecialchars($l['list_name'])."</option>"; ?>
+                                </select>
+                            </div>
+                            <div class="filter-column">
+                                <select name="tag_id" onchange="this.form.submit()" class="filter-field">
+                                    <option value="">All Tags</option>
+                                    <?php foreach ($my_tags as $t) echo "<option value='{$t['tag_id']}' ".($filter_tag_id == $t['tag_id']?'selected':'').">".htmlspecialchars($t['tag_name'])."</option>"; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-row">
+                            <div class="filter-column">
+                                <select name="matrix_filter" onchange="this.form.submit()" class="filter-field">
+                                    <option value="">All Priorities</option>
+                                    <option value="do_first" <?php echo $filter_matrix === 'do_first' ? 'selected' : ''; ?>>🔴 Do First</option>
+                                    <option value="schedule" <?php echo $filter_matrix === 'schedule' ? 'selected' : ''; ?>>🔵 Schedule</option>
+                                    <option value="delegate" <?php echo $filter_matrix === 'delegate' ? 'selected' : ''; ?>>🟡 Delegate</option>
+                                    <option value="dont_do" <?php echo $filter_matrix === 'dont_do' ? 'selected' : ''; ?>>⚪ Don't Do</option>
+                                </select>
+                            </div>
+                            <div class="filter-column filter-date-group">
+                                <input type="date" name="start_date" value="<?php echo htmlspecialchars($filter_start_date); ?>" class="filter-field">
+                                <span>to</span>
+                                <input type="date" name="end_date" value="<?php echo htmlspecialchars($filter_end_date); ?>" class="filter-field">
+                            </div>
+                            <div class="filter-column" style="flex: 0;">
+                                <button type="submit" class="btn btn-secondary" title="Apply Filter"><i class="fas fa-filter"></i></button>
+                            </div>
+                            <div class="filter-column" style="flex: 0;">
+                                <a href="home.php" class="btn btn-secondary" title="Clear Filters" style="background: #e2e6ea; color: #333;"><i class="fas fa-times"></i></a>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
 
-        <div class="filter-status-bar">
-            <div>
-                <i class="fas fa-layer-group" style="color: #007bff; margin-right: 5px;"></i>
-                Filtered by: <?php echo $current_filter_text; ?>
-            </div>
-            <?php if (!empty($filter_desc)): ?>
-                <a href="home.php" style="color: #dc3545; font-size: 0.9em; font-weight: 600; text-decoration: none;">
-                    <i class="fas fa-times"></i> Clear All
-                </a>
-            <?php endif; ?>
-        </div>
-
-        <div class="task-list">
-            <?php if ($tasks_result->num_rows > 0): ?>
-                <?php while ($task = $tasks_result->fetch_assoc()):
-                    // Logic Status
-                    $is_completed = ($task['status'] === 'completed');
-                    $is_canceled = ($task['status'] === 'canceled');
-                    $is_doing = ($task['status'] === 'in_progress');
-                    $is_overdue = (!$is_completed && !$is_canceled && !empty($task['due_date']) && strtotime($task['due_date']) < time());
-
-                    $css_class = $is_completed ? 'completed' : ($is_canceled ? 'canceled-task' : '');
-                    ?>
-
-                    <div class="task-item <?php echo $css_class; ?>" style="<?php echo $is_doing ? 'border-left: 4px solid #007bff;' : ''; ?>">
-
-                        <a href="modules/tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none;">
-                            <?php if ($is_completed): ?>
-                                <i class="fas fa-check-square" style="color: #28a745; font-size: 24px;" title="Done! Click to Re-open"></i>
-                            <?php elseif ($is_doing): ?>
-                                <i class="fas fa-spinner fa-spin" style="color: #007bff; font-size: 24px;" title="Working... Click to Complete"></i>
-                            <?php elseif ($is_canceled): ?>
-                                <i class="fas fa-ban" style="color: #dc3545; font-size: 24px; opacity: 0.5;" title="Canceled. Click to Restore"></i>
-                            <?php else: ?>
-                                <i class="far fa-square" style="color: #adb5bd; font-size: 24px;" title="Click to Start"></i>
-                            <?php endif; ?>
+                <div class="filter-status-bar">
+                    <div>
+                        <i class="fas fa-layer-group" style="color: #007bff; margin-right: 5px;"></i>
+                        Filtered by: <?php echo $current_filter_text; ?>
+                    </div>
+                    <?php if (!empty($filter_desc)): ?>
+                        <a href="home.php" style="color: #dc3545; font-size: 0.9em; font-weight: 600; text-decoration: none;">
+                            <i class="fas fa-times"></i> Clear All
                         </a>
-
-                        <div style="flex-grow: 1;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <a href="modules/tasks/task_detail.php?id=<?php echo $task['task_id']; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
-                                    <?php echo htmlspecialchars($task['title']); ?>
-                                </a>
-                                <?php if ($is_doing): ?>
-                                    <span style="font-size: 0.7em; color: #007bff; background: #e7f1ff; padding: 1px 5px; border-radius: 4px; font-weight: bold;">DOING</span>
-                                <?php endif; ?>
-                                <?php if ($is_overdue): ?>
-                                    <span class="text-overdue" title="Overdue!"><i class="fas fa-exclamation-circle"></i></span>
-                                <?php endif; ?>
-                                <?php
-                                if (!empty($task['tag_data'])) {
-                                    $tags_array = explode('|', $task['tag_data']);
-                                    foreach ($tags_array as $tag_str) {
-                                        $parts = explode('^', $tag_str);
-                                        if (count($parts) === 2) {
-                                            $t_name = $parts[0];
-                                            $t_color = $parts[1];
-                                            // Tag Pill Style
-                                            echo "<span class='tag-pill' style='color: $t_color; border-color: $t_color;'>";
-                                            echo "<i class='fas fa-tag'></i> " . htmlspecialchars($t_name);
-                                            echo "</span>";
-                                        }
-                                    }
-                                }
-                                ?>
-                            </div>
-
-                            <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-
-                                <?php if ($task['is_important']): ?><span class="matrix-badge matrix-imp"><i class="fas fa-star"></i> Important</span><?php endif; ?>
-                                <?php if ($task['is_urgent']): ?><span class="matrix-badge matrix-urg"><i class="fas fa-fire"></i> Urgent</span><?php endif; ?>
-
-                                <?php if (!empty($task['list_name'])): ?>
-                                    <a href="home.php?list_id=<?php echo $task['list_id']; ?>" class="badge-pill" style="background-color: <?php echo $task['color_code']; ?>;">
-                                        <i class="fas fa-folder-open"></i> <?php echo htmlspecialchars($task['list_name']); ?>
-                                    </a>
-                                <?php endif; ?>
-
-                                <?php if (!empty($task['due_date'])): ?>
-                                    <span style="font-size: 0.8em; color: #888; margin-left: auto;">
-                                    <i class="far fa-clock"></i> <?php echo date("d/m H:i", strtotime($task['due_date'])); ?>
-                                </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="task-actions">
-                            <?php if (!$is_canceled && !$is_completed): ?>
-                                <a href="modules/tasks/cancel_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon" style="background-color: #6c757d;" title="Cancel Task" onclick="return confirm('Cancel this task?');">
-                                    <i class="fas fa-ban"></i>
-                                </a>
-                            <?php endif; ?>
-                            <a href="modules/tasks/edit_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-edit" title="Edit"><i class="fas fa-pen"></i></a>
-                            <a href="modules/tasks/delete_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-delete" title="Delete" onclick="return confirm('Delete this task?');"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div style="text-align: center; color: #888; margin-top: 50px;">
-                    <i class="fas fa-clipboard-check" style="font-size: 3rem; color: #dee2e6; margin-bottom: 15px;"></i>
-                    <p>No tasks found matching your filters.</p>
+                    <?php endif; ?>
                 </div>
-            <?php endif; ?>
-        </div>
-    </div>
-    </body>
+
+                <div class="task-list">
+                    <?php if ($tasks_result->num_rows > 0): ?>
+                        <?php while ($task = $tasks_result->fetch_assoc()):
+                            // Logic Status
+                            $is_completed = ($task['status'] === 'completed');
+                            $is_canceled = ($task['status'] === 'canceled');
+                            $is_doing = ($task['status'] === 'in_progress');
+                            $is_overdue = (!$is_completed && !$is_canceled && !empty($task['due_date']) && strtotime($task['due_date']) < time());
+
+                            $css_class = $is_completed ? 'completed' : ($is_canceled ? 'canceled-task' : '');
+                            ?>
+
+                            <div class="task-item <?php echo $css_class; ?>" style="<?php echo $is_doing ? 'border-left: 4px solid #007bff;' : ''; ?>">
+
+                                <a href="modules/tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none;">
+                                    <?php if ($is_completed): ?>
+                                        <i class="fas fa-check-square" style="color: #28a745; font-size: 24px;" title="Done! Click to Re-open"></i>
+                                    <?php elseif ($is_doing): ?>
+                                        <i class="fas fa-spinner fa-spin" style="color: #007bff; font-size: 24px;" title="Working... Click to Complete"></i>
+                                    <?php elseif ($is_canceled): ?>
+                                        <i class="fas fa-ban" style="color: #dc3545; font-size: 24px; opacity: 0.5;" title="Canceled. Click to Restore"></i>
+                                    <?php else: ?>
+                                        <i class="far fa-square" style="color: #adb5bd; font-size: 24px;" title="Click to Start"></i>
+                                    <?php endif; ?>
+                                </a>
+
+                                <div style="flex-grow: 1;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <a href="modules/tasks/task_detail.php?id=<?php echo $task['task_id']; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
+                                            <?php echo htmlspecialchars($task['title']); ?>
+                                        </a>
+                                        <?php if ($is_doing): ?>
+                                            <span style="font-size: 0.7em; color: #007bff; background: #e7f1ff; padding: 1px 5px; border-radius: 4px; font-weight: bold;">DOING</span>
+                                        <?php endif; ?>
+                                        <?php if ($is_overdue): ?>
+                                            <span class="text-overdue" title="Overdue!"><i class="fas fa-exclamation-circle"></i></span>
+                                        <?php endif; ?>
+                                        <?php
+                                        if (!empty($task['tag_data'])) {
+                                            $tags_array = explode('|', $task['tag_data']);
+                                            foreach ($tags_array as $tag_str) {
+                                                $parts = explode('^', $tag_str);
+                                                if (count($parts) === 2) {
+                                                    $t_name = $parts[0];
+                                                    $t_color = $parts[1];
+                                                    // Tag Pill Style
+                                                    echo "<span class='tag-pill' style='color: $t_color; border-color: $t_color;'>";
+                                                    echo "<i class='fas fa-tag'></i> " . htmlspecialchars($t_name);
+                                                    echo "</span>";
+                                                }
+                                            }
+                                        }
+                                        ?>
+                                    </div>
+
+                                    <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+
+                                        <?php if ($task['is_important']): ?><span class="matrix-badge matrix-imp"><i class="fas fa-star"></i> Important</span><?php endif; ?>
+                                        <?php if ($task['is_urgent']): ?><span class="matrix-badge matrix-urg"><i class="fas fa-fire"></i> Urgent</span><?php endif; ?>
+
+                                        <?php if (!empty($task['list_name'])): ?>
+                                            <a href="home.php?list_id=<?php echo $task['list_id']; ?>" class="badge-pill" style="background-color: <?php echo $task['color_code']; ?>;">
+                                                <i class="fas fa-folder-open"></i> <?php echo htmlspecialchars($task['list_name']); ?>
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($task['due_date'])): ?>
+                                            <span style="font-size: 0.8em; color: #888; margin-left: auto;">
+                                            <i class="far fa-clock"></i> <?php echo date("d/m H:i", strtotime($task['due_date'])); ?>
+                                        </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <div class="task-actions">
+                                    <?php if (!$is_canceled && !$is_completed): ?>
+                                        <a href="modules/tasks/cancel_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon" style="background-color: #6c757d;" title="Cancel Task" onclick="return confirm('Cancel this task?');">
+                                            <i class="fas fa-ban"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="modules/tasks/edit_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-edit" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <a href="modules/tasks/delete_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-delete" title="Delete" onclick="return confirm('Delete this task?');"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <div style="text-align: center; color: #888; margin-top: 50px;">
+                            <i class="fas fa-clipboard-check" style="font-size: 3rem; color: #dee2e6; margin-bottom: 15px;"></i>
+                            <p>No tasks found matching your filters.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div> </div> </div> </body>
     </html>
 <?php
 $conn->close();
