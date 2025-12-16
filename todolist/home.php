@@ -8,6 +8,9 @@ include 'config/db_connect.php';
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) { header("Location: auth/login.php"); exit; }
 
+//Filter due to current
+$today_date = date("Y-m-d");
+
 // --- 1. THỐNG KÊ ---
 $sql_stats = "SELECT 
     COUNT(*) as total,
@@ -237,7 +240,7 @@ include 'includes/sidebar.php';
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
                 <h3 style="margin:0; color: #3498db;"><i class="fas fa-calendar-day"></i> Due Today</h3>
-                <a href="modules/tasks/tasks.php?filter=today" class="btn-header-link">
+                <a href="modules/tasks/tasks.php?start_date=<?php echo $today_date; ?>&end_date=<?php echo $today_date; ?>" class="btn-header-link">
                     View List <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
