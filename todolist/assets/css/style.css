@@ -15,6 +15,8 @@
     --color-input-bg: #fff;
     --color-card-bg: #fff;
     --color-bg-light: #f8f9fa;
+    --color-sidebar-bg: #ffffff;
+    --color-sidebar-border: #e9ecef;
 
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     --border-radius: 8px;
@@ -31,28 +33,132 @@
 }
 
 body {
-    background: var(--gradient) no-repeat fixed;
-    background-size: cover;
+    /* Áp dụng lớp phủ tối (40% đen) lên trên hình nền */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), /* <--- LỚP PHỦ MÀU ĐEN */
+        url('backiee-282524.jpg') no-repeat center center fixed; /* <--- Hình nền gốc */
+
+    background-size: cover; /* Đảm bảo cả lớp phủ và hình nền đều phủ đầy */
     font-family: var(--font-family);
-    color: var(--color-text);
+    color: var(--color-text); /* Bạn nên cân nhắc đổi màu chữ mặc định sang trắng nếu nền quá tối */
     line-height: 1.5;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    align-items: stretch;
     min-height: 100vh;
-    padding: 40px 20px;
+    padding: 0;
 }
 
 a { text-decoration: none; color: inherit; transition: var(--transition); }
 
-.container {
+/* BỐ CỤC SIDEBAR VÀ NỘI DUNG CHÍNH */
+.app-layout {
+    display: flex;
+    width: 100%;
+    max-width: 1400px; 
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.0);
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--color-sidebar-bg);
+    padding: 20px;
+    border-right: 1px solid var(--color-sidebar-border);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 40px 30px; 
+    overflow-y: auto;
+}
+
+/* Đảm bảo CONTAINER (DÙNG CHO CÁC TRANG CON KHÔNG CÓ SIDEBAR) được căn giữa */
+.container { 
     width: 100%;
     max-width: 900px;
     background: rgba(255, 255, 255, 0.95);
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    /* *** DÒNG CĂN GIỮA QUAN TRỌNG CHO TRANG CON *** */
+    margin: 40px auto; 
 }
+
+/* Đảm bảo dashboard-container (DÙNG TRONG HOME.PHP CÓ SIDEBAR) không bị margin: auto */
+.dashboard-container { 
+    width: 100%;
+    background: var(--color-card-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    padding: 30px;
+}
+
+/* ---------------- SIDEBAR NAVIGATION STYLES ---------------- */
+.sidebar-header {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--color-primary);
+    width: 100%;
+    text-align: center;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+.sidebar-nav-item a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: var(--border-radius);
+    color: var(--color-text);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.sidebar-nav-item a:hover,
+.sidebar-nav-item a.active {
+    background-color: var(--color-primary);
+    color: white;
+    box-shadow: var(--box-shadow);
+}
+
+.sidebar-nav-item a.active {
+    font-weight: 700;
+}
+
+.sidebar-user-info {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-sidebar-border);
+    width: 100%;
+}
+.sidebar-user-info p {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 10px;
+}
+.sidebar-action-btns {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+/* ---------------- END SIDEBAR STYLES ---------------- */
+
+
+/* GIỮ LẠI VÀ CHỈNH SỬA CÁC STYLE GỐC */
 
 .auth-container {
     max-width: 400px;
@@ -309,8 +415,43 @@ form label {
     color: var(--color-text);
 }
 
-@media (max-width: 768px) {
-    .container { padding: 15px; width: 100%; }
+@media (max-width: 992px) { /* breakpoint cho tablet/mobile */
+    .app-layout {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--color-sidebar-border);
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 15px 10px;
+    }
+    .sidebar-header {
+        display: none;
+    }
+    .sidebar-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+    .sidebar-nav-item a {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+    .sidebar-nav-item a i {
+        font-size: 1.1rem;
+    }
+    .sidebar-user-info {
+        display: none;
+    }
+    .main-content {
+        padding: 20px 15px;
+    }
+
+    /* Các media query gốc */
+    .container { padding: 15px; width: 100%; margin: 20px auto; }
     .header { flex-direction: column; gap: 10px; align-items: flex-start; }
     .task-controls { flex-direction: column; }
 
