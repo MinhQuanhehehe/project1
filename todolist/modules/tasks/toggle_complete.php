@@ -17,7 +17,7 @@ if (!$task_id) {
     exit;
 }
 
-// Get current status
+// Lấy trạng thái hiện tại
 $stmt = $conn->prepare("SELECT status FROM Tasks WHERE task_id = ? AND user_id = ?");
 $stmt->bind_param("ii", $task_id, $user_id);
 $stmt->execute();
@@ -31,25 +31,19 @@ $new_status = 'pending';
 $completed_at = NULL;
 $log_detail = "";
 
-// STATUS LOGIC
+// LOGIC XỬ LÝ TRẠNG THÁI
 switch ($current_status) {
     case 'pending':
-        // Pending -> In Progress
         $new_status = 'in_progress';
         $log_detail = "Started task (In Progress)";
         break;
 
     case 'in_progress':
-        // In Progress -> Completed
         $new_status = 'completed';
         $completed_at = date("Y-m-d H:i:s");
-
-        // Update all Subtasks to completed
+        // Tự động hoàn thành các subtasks
         $conn->query("UPDATE SubTasks SET is_completed = 1 WHERE task_id = $task_id AND is_completed = 0");
-
-        //Count affected subtasks
         $affected_subtasks = $conn->affected_rows;
-
         $log_detail = "Completed task";
         if ($affected_subtasks > 0) {
             $log_detail .= " (auto-completed $affected_subtasks checklist items)";
@@ -59,12 +53,9 @@ switch ($current_status) {
     case 'completed':
         $new_status = 'pending';
         $completed_at = NULL;
-
-        // Reset all Subtasks to uncompleted
+        // Reset lại các subtasks
         $conn->query("UPDATE SubTasks SET is_completed = 0 WHERE task_id = $task_id AND is_completed = 1");
-
         $affected_subtasks = $conn->affected_rows;
-
         $log_detail = "Re-opened task (Pending)";
         if ($affected_subtasks > 0) {
             $log_detail .= " (reset $affected_subtasks checklist items)";
@@ -78,18 +69,17 @@ switch ($current_status) {
         break;
 }
 
-// Update Main Task in DB
+// Cập nhật Database
 $stmt_update = $conn->prepare("UPDATE Tasks SET status = ?, completed_at = ? WHERE task_id = ? AND user_id = ?");
 $stmt_update->bind_param("ssii", $new_status, $completed_at, $task_id, $user_id);
 
 if ($stmt_update->execute()) {
-    // Log
     $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'UPDATE', 'Tasks', $task_id, '$log_detail')");
 }
 $stmt_update->close();
 $conn->close();
 
-$redirect_url = $_SERVER['HTTP_REFERER'] ?? '../../home.php';
-header("Location: " . $redirect_url);
+// SỬA TẠI ĐÂY: Ép quay lại trang chi tiết task thay vì dùng REFERER
+header("Location: task_detail.php?id=" . $task_id);
 exit;
 ?>
