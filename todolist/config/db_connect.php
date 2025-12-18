@@ -1,8 +1,8 @@
 <?php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'todo_app_db');
+define('DB_HOST', 'sql100.infinityfree.com');
+define('DB_USER', 'if0_40499116');
+define('DB_PASS', 'Qs1Wd2Ef3Rg4');
+define('DB_NAME', 'if0_40499116_todo_app_db_2');
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
