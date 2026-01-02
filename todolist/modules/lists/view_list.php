@@ -65,8 +65,47 @@ $tasks_result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($list_info['list_name']); ?> - Todo Pro</title>
-    <link rel="stylesheet" href="../../assets/css/style1.css?v=1.0">
+    <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+    /* Sử dụng lại btn-back như trên */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-back:hover {
+        transform: scale(1.1);
+        background-color: #f8f9fa;
+        border-color: #adb5bd;
+    }
+    .btn-add {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+    .btn-add:hover {
+        background-color: #0056b3 !important;
+        transform: translateY(-5px);
+        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+    }
+</style>
 </head>
 <body>
 
@@ -86,7 +125,7 @@ include '../../includes/sidebar.php';
             <strong><?php echo htmlspecialchars($list_info['list_name']); ?></strong>
         </div>
 
-        <a href="../../home.php" class="btn btn-secondary">
+        <a href="../../home.php" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
@@ -105,8 +144,8 @@ include '../../includes/sidebar.php';
         </div>
 
         <div class="manager-actions">
-            <a href="../tasks/create_task.php<?php echo $is_inbox ? '' : '?list_id='.$list_id; ?>" class="btn" style="display: flex; align-items: center; gap: 5px; padding: 10px 15px;">
-                <i class="fas fa-plus"></i> Add Task
+            <a href="../tasks/create_task.php<?php echo $is_inbox ? '' : '?list_id='.$list_id; ?>" class="btn-add" style="display: flex; align-items: center; gap: 5px; padding: 10px 15px;">
+                <i class="fas fa-plus"></i>
             </a>
 
             <?php if (!$is_inbox): ?>
