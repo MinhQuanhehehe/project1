@@ -65,8 +65,41 @@ if (!$list) { header("Location: manage_lists.php"); exit; }
 <head>
     <meta charset="UTF-8">
     <title>Edit List</title>
-    <link rel="stylesheet" href="../../assets/css/style1.css?v=1.0">
+    <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+    .btn-save {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-save:hover {
+        background-color: #0056b3 !important;
+        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+        transform: translateY(-5px);
+    }
+    /* Nút Cancel tương tự nút Back nhưng không có icon */
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .btn-cancel:hover {
+        transform: translateY(-5px);
+        background-color: #f8f9fa;
+    }
+    </style>
 </head>
 <body>
 
@@ -98,8 +131,8 @@ include '../../includes/sidebar.php';
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn">Save Changes</button>
-                <a href="manage_lists.php" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn-save">Save</button>
+                <a href="manage_lists.php" class="btn-cancel">Cancel</a>
             </div>
         </form>
     </div>
