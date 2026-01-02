@@ -54,8 +54,49 @@ $tags_result = $conn->query("SELECT * FROM Tags WHERE user_id = $user_id ORDER B
 <head>
     <meta charset="UTF-8">
     <title>Manage Tags</title>
-    <link rel="stylesheet" href="../../assets/css/style1.css?v=1.0">
+    <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-back:hover {
+        transform: scale(1.1);
+        background-color: #f8f9fa;
+        color: #343a40;
+        border-color: #adb5bd;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .btn-create {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none;
+        padding: 0 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        font-weight: 600;
+    }
+    .btn-create:hover {
+        background-color: #0056b3 !important;
+        transform: translateY(-5px);
+        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+    }
+</style>
 </head>
 <body>
 
@@ -68,7 +109,7 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-tags"></i> Manage Tags</h2>
-        <a href="../../home.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="../../home.php" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
     </div>
 
     <?php if ($error): ?>
@@ -97,7 +138,7 @@ include '../../includes/sidebar.php';
                 <input type="color" name="color_code" value="#17a2b8" style="height: 42px; padding: 2px; width: 100%; border: 1px solid #ced4da; border-radius: 6px;">
             </div>
 
-            <button type="submit" class="btn" style="height: 42px;"><i class="fas fa-plus"></i> Create</button>
+            <button type="submit" class="btn-create" style="height: 42px;"><i class="fas fa-plus"></i></button>
         </form>
     </div>
 
