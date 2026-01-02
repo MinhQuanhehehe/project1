@@ -170,7 +170,7 @@ include '../../includes/sidebar.php';
                 ?>
 
                 <div class="task-item <?php echo $css_class; ?>" style="<?php echo $is_doing ? 'border-left: 4px solid #007bff;' : ''; ?>">
-                    <a href="../tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none;">
+                    <a href="../tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none; margin-right: 20px">
                         <?php if ($is_completed): ?>
                             <i class="fas fa-check-square" style="color: #28a745; font-size: 24px;"></i>
                         <?php elseif ($is_doing): ?>

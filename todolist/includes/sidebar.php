@@ -148,6 +148,32 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
     .logout-link {
         color: #ff8a80 !important;
     }
+    .sidebar {
+        background: linear-gradient(180deg, #004e92 0%, #000428 100%) !important;
+        color: #ffffff;
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+    .sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+    }
 </style>
 
 <div class="sidebar">

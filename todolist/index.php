@@ -1,5 +1,5 @@
 /*Để file này cạnh đường dẫn project1*/
 <?php
-header("Location: project1/todolist/home.php");
+header("Location: home.php");
 exit;
 ?>
