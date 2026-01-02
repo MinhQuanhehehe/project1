@@ -6,6 +6,7 @@ include '../../config/db_connect.php';
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
 if (!$user_id) { header("Location: ../../auth/login.php"); exit; }
 
+// THÊM MỚI SUBTASK
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_subtask'])) {
     $task_id = $_POST['task_id'];
     $title = trim($_POST['subtask_title']);
@@ -21,24 +22,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_subtask'])) {
 
             if ($stmt->execute()) {
                 $new_sub_id = $conn->insert_id;
-
                 $log_detail = "Added checklist item: " . $title;
                 $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'CREATE', 'SubTasks', $new_sub_id, '$log_detail')");
-
+                
+                // Tự động chuyển Task sang In Progress
                 $conn->query("UPDATE Tasks SET status = 'in_progress' WHERE task_id = $task_id AND status = 'pending'");
-
-                if ($conn->affected_rows > 0) {
-                    $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'UPDATE', 'Tasks', $task_id, 'Auto-started task (In Progress) due to new checklist item')");
-                }
             }
             $stmt->close();
         }
         $check->close();
     }
+    // Quay lại trang chi tiết
     header("Location: task_detail.php?id=" . $task_id);
     exit;
 }
 
+// TOGGLE HOẶC DELETE SUBTASK
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $subtask_id = $_GET['id'];
 
@@ -61,29 +60,25 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $status_text = $new_sub_status ? "Completed" : "Unchecked";
             $log_detail = "$status_text checklist item: $sub_title";
             $safe_detail = $conn->real_escape_string($log_detail);
-
             $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'UPDATE', 'SubTasks', $subtask_id, '$safe_detail')");
 
             if ($new_sub_status == 1) {
                 $conn->query("UPDATE Tasks SET status = 'in_progress' WHERE task_id = $parent_task_id AND (status = 'pending' OR status = 'canceled')");
-
-                if ($conn->affected_rows > 0) {
-                    $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'UPDATE', 'Tasks', $parent_task_id, 'Auto-started task (In Progress) due to checklist activity')");
-                }
             }
         } elseif ($_GET['action'] === 'delete') {
             $conn->query("DELETE FROM SubTasks WHERE subtask_id = $subtask_id");
-
             $log_detail = "Deleted checklist item: " . $sub_title;
             $safe_detail = $conn->real_escape_string($log_detail);
             $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'DELETE', 'SubTasks', $subtask_id, '$safe_detail')");
         }
 
+        // SỬA TẠI ĐÂY: Đảm bảo luôn quay lại trang detail với ID chính xác
         header("Location: task_detail.php?id=" . $parent_task_id);
         exit;
     }
 }
 
+// Nếu có lỗi, mặc định về home
 header("Location: ../../home.php");
 exit;
 ?>

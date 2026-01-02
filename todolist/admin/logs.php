@@ -4,16 +4,21 @@ global $conn;
 include '../config/db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: home.php");
+    header("Location: ../home.php");
     exit;
 }
 
-// Filter
+// 1. Get Params
 $filter_user = $_GET['user'] ?? '';
 $filter_action = $_GET['action'] ?? '';
 $filter_date_from = $_GET['date_from'] ?? '';
 $filter_date_to = $_GET['date_to'] ?? '';
 
+$limit = 20;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page - 1) * $limit;
+
+// 2. Build Query
 $where_clauses = ["1=1"];
 $params = [];
 $types = "";
@@ -41,278 +46,257 @@ if (!empty($filter_date_to)) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
-// Pages
-$limit = 20;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$start = ($page - 1) * $limit;
-
+// Count Total
 $sql_count = "SELECT COUNT(*) as total FROM ActivityLogs l LEFT JOIN Users u ON l.user_id = u.user_id WHERE $where_sql";
 $stmt_count = $conn->prepare($sql_count);
-if (!empty($params)) {
-    $stmt_count->bind_param($types, ...$params);
-}
+if(!empty($params)) $stmt_count->bind_param($types, ...$params);
 $stmt_count->execute();
 $total_rows = $stmt_count->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
-$stmt_count->close();
 
-// Data ---
-$sql = "SELECT l.*, u.username 
-        FROM ActivityLogs l 
-        LEFT JOIN Users u ON l.user_id = u.user_id 
-        WHERE $where_sql 
-        ORDER BY l.created_at DESC 
-        LIMIT ?, ?";
-
-$params[] = $start;
-$params[] = $limit;
-$types .= "ii";
-
+// Get Data
+$sql = "SELECT l.*, u.username FROM ActivityLogs l LEFT JOIN Users u ON l.user_id = u.user_id WHERE $where_sql ORDER BY l.created_at DESC LIMIT ?, ?";
+$params[] = $start; $params[] = $limit; $types .= "ii";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $logs_result = $stmt->get_result();
-
-function get_query_url($new_page) {
-    $query = $_GET;
-    $query['page'] = $new_page;
-    return http_build_query($query);
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>System Logs - Todo App Pro</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>System Logs</title>
+    <link rel="stylesheet" href="../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .admin-container {
-            width: 95%; max-width: 1600px; margin: 40px auto;
-            background: #fff; padding: 30px; border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
-        .filter-bar {
-            background: #fff;
-            padding: 20px;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            display: flex;
-            align-items: flex-end;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex: 1;
-            min-width: 180px;
-        }
-
-        .filter-group label {
-            font-size: 0.9em;
-            font-weight: 700;
-            color: #555;
-        }
-
-        .filter-input {
-            padding: 10px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            width: 100%;
-            font-size: 0.95em;
-            color: #495057;
-            height: 42px;
-        }
-
-        .filter-input:focus {
-            border-color: #007bff;
-            outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 10px;
-            padding-bottom: 0;
-        }
-
-        .btn-apply {
-            height: 42px;
-            padding: 0 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
+        /* Nút Dashboard (Back): Viền mỏng và phóng to khi hover */
+        .btn-back {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-apply:hover { background-color: #0056b3; }
-
-        .btn-clear {
-            height: 42px;
-            padding: 0 20px;
-            background-color: #e9ecef;
-            color: #333;
-            border: 1px solid #ced4da;
+            padding: 8px 16px;
+            background-color: transparent;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
             border-radius: 6px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
             text-decoration: none;
-            transition: background 0.2s;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
-        .btn-clear:hover { background-color: #dde2e6; }
+        .btn-back:hover {
+            transform: scale(1.1);
+            background-color: #f8f9fa;
+            color: #343a40;
+            border-color: #adb5bd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
 
+        /* Nút Clean Logs: Màu đỏ và phóng to khi hover */
+        .btn-clean {
+            background-color: #dc3545 !important;
+            color: white !important;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-clean:hover {
+            background-color: #c82333 !important;
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
 
-        .pagination { display: flex; justify-content: center; margin-top: 20px; gap: 5px; }
-        .page-link { padding: 8px 12px; border: 1px solid #dee2e6; color: #007bff; text-decoration: none; border-radius: 4px; }
-        .page-link.active { background: #007bff; color: #fff; border-color: #007bff; }
-        .page-link:hover:not(.active) { background: #e9ecef; }
-        .page-link.disabled { color: #ccc; pointer-events: none; }
+        /* Nút Filter: Màu xanh dương */
+        .btn-filter {
+            background-color: #007bff !important;
+            color: white !important;
+            border: none;
+            height: 42px;
+            padding: 0 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-filter:hover {
+            background-color: #0056b3 !important;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+            transform: translateY(-5px);
+        }
 
-        .badge-log { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; width: 80px; text-align: center; display: inline-block; }
-        .c-create   { background: #d4edda; color: #155724; }
-        .c-update   { background: #cce5ff; color: #004085; }
-        .c-delete   { background: #f8d7da; color: #721c24; }
-        .c-login    { background: #fff3cd; color: #856404; }
-        .c-register { background: #e8daef; color: #6f42c1; border: 1px solid #d2b4de; }
+        /* Nút Clear Filter: Màu xám đậm */
+        .btn-clear {
+            background-color: #6c757d !important;
+            color: white !important;
+            border: none;
+            height: 42px;
+            padding: 0 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .btn-clear:hover {
+            background-color: #5a6268 !important;
+            box-shadow: 0 4px 6px rgba(94, 105, 117, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .filter-field {
+            height: 42px;
+            border-radius: 6px;
+            border: 2px solid #2962ffff;
+            padding: 0 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
     </style>
 </head>
-<body style="background-color: #f4f6f9;">
+<body>
 
-<div class="admin-container">
+<?php
+$path_to_root = '../';
+include '../includes/sidebar.php';
+?>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f4f6f9; padding-bottom: 15px;">
-        <div>
-            <h2 style="color: #ffc107; margin-bottom: 5px;"><i class="fas fa-history"></i> System Logs</h2>
-            <span style="color: #888;">Total: <strong><?php echo number_format($total_rows); ?></strong> records found</span>
-        </div>
-        <div>
-            <a href="admin_actions.php?action=clean_logs&redirect=logs.php"
-               class="btn btn-secondary"
-               style="background-color: #ffc107; color: #333;"
-               onclick="return confirm('Delete logs older than 30 days?')">
+<div class="main-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
+        <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-history"></i> System Logs</h2>
+        <div style="display: flex; gap: 12px;">
+            <a href="admin_actions.php?action=clean_logs&redirect=logs.php" class="btn-clean" onclick="return confirm('Delete logs older than 30 days?')">
                 <i class="fas fa-broom"></i> Clean Logs
             </a>
-            <a href="admin.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Dashboard</a>
+            <a href="admin.php" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
         </div>
     </div>
 
-    <form action="logs.php" method="GET" class="filter-bar">
-        <div class="filter-group">
-            <label>Username</label>
-            <input type="text" name="user" value="<?php echo htmlspecialchars($filter_user); ?>" placeholder="Enter username..." class="filter-input">
-        </div>
+    <form action="logs.php" method="GET" class="filter-wrapper" style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+        <div class="filter-row">
 
-        <div class="filter-group">
-            <label>Action Type</label>
-            <select name="action" class="filter-input">
-                <option value="">-- All Actions --</option>
-                <option value="LOGIN"    <?php echo $filter_action=='LOGIN'?'selected':''; ?>>Login</option>
-                <option value="REGISTER" <?php echo $filter_action=='REGISTER'?'selected':''; ?>>Register</option>
-                <option value="CREATE"   <?php echo $filter_action=='CREATE'?'selected':''; ?>>Create</option>
-                <option value="UPDATE"   <?php echo $filter_action=='UPDATE'?'selected':''; ?>>Update</option>
-                <option value="DELETE"   <?php echo $filter_action=='DELETE'?'selected':''; ?>>Delete</option>
-            </select>
-        </div>
+            <div class="filter-column">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.9em;">Username</label>
+                <input type="text" name="user" value="<?php echo htmlspecialchars($filter_user); ?>" placeholder="Enter username..." class="filter-field">
+            </div>
 
-        <div class="filter-group">
-            <label>From Date</label>
-            <input type="date" name="date_from" value="<?php echo htmlspecialchars($filter_date_from); ?>" class="filter-input">
-        </div>
+            <div class="filter-column">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.9em;">Action Type</label>
+                <select name="action" class="filter-field">
+                    <option value="">-- All Actions --</option>
+                    <option value="LOGIN" <?php echo $filter_action=='LOGIN'?'selected':''; ?>>Login</option>
+                    <option value="CREATE" <?php echo $filter_action=='CREATE'?'selected':''; ?>>Create</option>
+                    <option value="UPDATE" <?php echo $filter_action=='UPDATE'?'selected':''; ?>>Update</option>
+                    <option value="DELETE" <?php echo $filter_action=='DELETE'?'selected':''; ?>>Delete</option>
+                </select>
+            </div>
 
-        <div class="filter-group">
-            <label>To Date</label>
-            <input type="date" name="date_to" value="<?php echo htmlspecialchars($filter_date_to); ?>" class="filter-input">
-        </div>
+            <div class="filter-column filter-date-group" style="flex: 2; align-items: flex-end; display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.9em;">Date From</label>
+                    <input type="date" name="date_from" value="<?php echo htmlspecialchars($filter_date_from); ?>" class="filter-field">
+                </div>
+                <div style="padding-bottom: 10px; font-weight: bold; color: #888;">to</div>
+                <div style="flex: 1;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.9em;">Date To</label>
+                    <input type="date" name="date_to" value="<?php echo htmlspecialchars($filter_date_to); ?>" class="filter-field">
+                </div>
+            </div>
 
-        <div class="filter-actions">
-            <button type="submit" class="btn-apply"><i class="fas fa-filter"></i> Apply</button>
-            <?php if(!empty($filter_user) || !empty($filter_action) || !empty($filter_date_from) || !empty($filter_date_to)): ?>
-                <a href="logs.php" class="btn-clear">Clear</a>
-            <?php else: ?>
-                <a href="logs.php" class="btn-clear" style="pointer-events: none; opacity: 0.6;">Clear</a>
-            <?php endif; ?>
+            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <button type="submit" class="btn-filter"><i class="fas fa-filter"></i></button>
+                <?php if(!empty($filter_user) || !empty($filter_action) || !empty($filter_date_from) || !empty($filter_date_to)): ?>
+                    <a href="logs.php" class="btn-clear"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
+            </div>
         </div>
     </form>
 
-    <div style="overflow-x: auto; min-height: 400px;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                <th style="padding: 12px; width: 150px;">Time</th>
-                <th style="padding: 12px; width: 150px;">User</th>
-                <th style="padding: 12px; width: 100px;">Action</th>
-                <th style="padding: 12px; width: 120px;">Target</th>
-                <th style="padding: 12px;">Details</th>
+    <div style="background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden;">
+        <table class="table-clean" style="margin: 0; width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8f9fa;">
+            <tr>
+                <th style="padding: 12px; text-align: left;">Time</th>
+                <th style="padding: 12px; text-align: left;">User</th>
+                <th style="padding: 12px; text-align: left;">Action</th>
+                <th style="padding: 12px; text-align: left;">Target</th>
+                <th style="padding: 12px; text-align: left;">Details</th>
             </tr>
             </thead>
             <tbody>
-            <?php if ($logs_result->num_rows > 0): ?>
+            <?php if($logs_result->num_rows > 0): ?>
                 <?php while($log = $logs_result->fetch_assoc()):
-                    $badge = '';
-                    switch($log['action_type']) {
-                        case 'CREATE':   $badge = 'c-create'; break;
-                        case 'UPDATE':   $badge = 'c-update'; break;
-                        case 'DELETE':   $badge = 'c-delete'; break;
-                        case 'LOGIN':    $badge = 'c-login'; break;
-                        case 'REGISTER': $badge = 'c-register'; break;
-                        default:         $badge = 'c-update';
-                    }
+                    $bg = '#eee'; $color = '#333';
+                    if($log['action_type'] == 'DELETE') { $bg = '#ffebee'; $color = '#c62828'; }
+                    if($log['action_type'] == 'CREATE') { $bg = '#e8f5e9'; $color = '#2e7d32'; }
+                    if($log['action_type'] == 'LOGIN')  { $bg = '#e3f2fd'; $color = '#1565c0'; }
                     ?>
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px; color: #666; font-size: 0.9em;">
-                            <?php echo date("Y-m-d H:i:s", strtotime($log['created_at'])); ?>
+                    <tr style="border-top: 1px solid #eee;">
+                        <td style="padding: 12px; color: #888; font-size: 0.9em; white-space: nowrap;">
+                            <?php echo date("Y-m-d H:i", strtotime($log['created_at'])); ?>
                         </td>
-                        <td style="padding: 10px; font-weight: 600;">
-                            <?php echo htmlspecialchars($log['username'] ?? 'System'); ?>
+                        <td style="padding: 12px; font-weight: bold;"><?php echo htmlspecialchars($log['username'] ?? 'System'); ?></td>
+                        <td style="padding: 12px;">
+                            <span style="background: <?php echo $bg; ?>; color: <?php echo $color; ?>; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                                <?php echo $log['action_type']; ?>
+                            </span>
                         </td>
-                        <td style="padding: 10px;">
-                            <span class="badge-log <?php echo $badge; ?>"><?php echo $log['action_type']; ?></span>
+                        <td style="padding: 12px; color: #555;">
+                            <?php echo htmlspecialchars($log['target_table']); ?> <small>#<?php echo $log['target_id']; ?></small>
                         </td>
-                        <td style="padding: 10px; color: #555;">
-                            <?php echo htmlspecialchars($log['target_table']); ?>
-                            <small style="color: #999;">#<?php echo $log['target_id']; ?></small>
-                        </td>
-                        <td style="padding: 10px; color: #333;">
+                        <td style="padding: 12px; color: #333; font-size: 0.95em;">
                             <?php echo htmlspecialchars($log['details']); ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>
             <?php else: ?>
-                <tr><td colspan="5" style="padding: 30px; text-align: center; color: #888;">No logs found matching your filters.</td></tr>
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 30px; color: #999;">No logs found matching your criteria.</td>
+                </tr>
             <?php endif; ?>
             </tbody>
         </table>
     </div>
 
-    <?php if ($total_pages > 1): ?>
-        <div class="pagination">
-            <a href="?<?php echo get_query_url($page - 1); ?>" class="page-link <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
-                &laquo; Prev
-            </a>
-            <?php for($i = 1; $i <= $total_pages; $i++): ?>
-                <a href="?<?php echo get_query_url($i); ?>" class="page-link <?php echo ($i == $page) ? 'active' : ''; ?>">
+    <?php if($total_pages > 1): ?>
+        <div style="margin-top: 25px; text-align: center; padding-bottom: 20px;">
+            <?php for($i=1; $i<=$total_pages; $i++):
+                $query_params = $_GET;
+                $query_params['page'] = $i;
+                $link = '?' . http_build_query($query_params);
+                $is_active = ($i == $page);
+                ?>  
+                <a href="<?php echo $link; ?>" class="btn" style="
+                    display: inline-block;
+                    padding: 5px 12px; 
+                    margin: 0 3px; 
+                    background-color: <?php echo $is_active ? '#007bff' : '#f8f9fa'; ?>;
+                    color: <?php echo $is_active ? '#fff' : '#666'; ?>;
+                    border: 1px solid <?php echo $is_active ? '#007bff' : '#dee2e6'; ?>;
+                    border-radius: 4px;
+                    text-decoration: none;
+                    transition: all 0.2s;
+                    font-weight: <?php echo $is_active ? '600' : '400'; ?>;
+                ">
                     <?php echo $i; ?>
                 </a>
             <?php endfor; ?>
-            <a href="?<?php echo get_query_url($page + 1); ?>" class="page-link <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
-                Next &raquo;
-            </a>
         </div>
     <?php endif; ?>
-
 </div>
 
 </body>

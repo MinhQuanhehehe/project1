@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 global $conn;
 include '../../config/db_connect.php';
 
@@ -18,7 +16,6 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $list_id = $_GET['id'];
 $error_message = '';
 
-// Xử lý POST (Update)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_list_name = trim($_POST['list_name']);
     $new_color = $_POST['color_code'];
@@ -56,49 +53,89 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Old Info
 $stmt_get = $conn->prepare("SELECT list_name, color_code FROM Lists WHERE list_id = ? AND user_id = ?");
 $stmt_get->bind_param("ii", $list_id, $user_id);
 $stmt_get->execute();
-$result_get = $stmt_get->get_result();
-
-if ($result_get->num_rows != 1) {
-    header("Location: ../../home.php");
-    exit;
-}
-$list = $result_get->fetch_assoc();
-$stmt_get->close();
-$conn->close();
+$list = $stmt_get->get_result()->fetch_assoc();
+if (!$list) { header("Location: manage_lists.php"); exit; }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit List - Todo App Pro</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <title>Edit List</title>
+    <link rel="stylesheet" href="../../assets/css/style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+    .btn-save {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-save:hover {
+        background-color: #0056b3 !important;
+        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+        transform: translateY(-5px);
+    }
+    /* Nút Cancel tương tự nút Back nhưng không có icon */
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .btn-cancel:hover {
+        transform: translateY(-5px);
+        background-color: #f8f9fa;
+    }
+    </style>
 </head>
 <body>
-<div class="container auth-container">
-    <h2>Edit List</h2>
-    <?php if (!empty($error_message)): ?>
-        <div class="alert alert-danger" style="color: red; text-align: center; margin-bottom: 10px;"><?php echo htmlspecialchars($error_message); ?></div>
-    <?php endif; ?>
 
-    <form action="edit_list.php?id=<?php echo $list_id; ?>" method="POST">
-        <div>
-            <label for="list_name">List Name</label>
-            <input type="text" id="list_name" name="list_name" value="<?php echo htmlspecialchars($list['list_name']); ?>" required>
-        </div>
-        <div>
-            <label for="color_code">Color</label>
-            <input type="color" id="color_code" name="color_code" value="<?php echo htmlspecialchars($list['color_code'] ?? '#007bff'); ?>" style="height: 40px; width: 100%; padding: 2px;">
-        </div>
-        <div class="button-group" style="display: flex; gap: 10px; margin-top: 20px;">
-            <button type="submit" class="btn">Save Changes</button>
-            <a href="../../home.php" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
+<?php
+$path_to_root = '../../';
+include '../../includes/sidebar.php';
+?>
+
+<div class="main-content">
+    <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+        <h2 style="margin-top: 0; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+            <i class="fas fa-edit"></i> Edit List
+        </h2>
+
+        <?php if (!empty($error_message)): ?>
+            <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+                <?php echo htmlspecialchars($error_message); ?>
+            </div>
+        <?php endif; ?>
+
+        <form action="edit_list.php?id=<?php echo $list_id; ?>" method="POST">
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">List Name</label>
+                <input type="text" name="list_name" value="<?php echo htmlspecialchars($list['list_name']); ?>" required class="filter-field">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Color</label>
+                <input type="color" name="color_code" value="<?php echo htmlspecialchars($list['color_code'] ?? '#007bff'); ?>" style="height: 45px; width: 100%; padding: 2px; border: 1px solid #ced4da; border-radius: 6px;">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-save">Save</button>
+                <a href="manage_lists.php" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 </body>
 </html>
