@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Change Password - Todo Pro</title>
-    <link rel="stylesheet" href="../assets/css/style1.css?v=1.0">
+    <link rel="stylesheet" href="../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .form-card {
@@ -90,11 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .form-control:focus { border-color: #3498db; outline: none; }
         .btn-submit {
-            background-color: #3498db; color: white; padding: 12px 20px;
+            background-color: #007bff; color: white; padding: 12px 20px;
             border: none; border-radius: 6px; cursor: pointer;
             font-size: 1rem; font-weight: 600; width: 100%; transition: 0.3s;
         }
-        .btn-submit:hover { background-color: #2980b9; }
+        .btn-submit:hover { background-color: #0056b3; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3); }
         .alert { padding: 15px; margin-bottom: 20px; border-radius: 6px; display: flex; align-items: center; gap: 10px; }
         .alert-error { background-color: #fce4e4; color: #c0392b; border: 1px solid #f5c6cb; }
         .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
