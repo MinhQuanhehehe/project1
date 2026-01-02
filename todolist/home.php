@@ -62,7 +62,7 @@ $today_tasks = $conn->query($sql_today);
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - Todo Pro</title>
-    <link rel="stylesheet" href="assets/css/style1.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
