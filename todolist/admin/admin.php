@@ -4,7 +4,7 @@ global $conn;
 include '../config/db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: home.php");
+    header("Location: ../home.php");
     exit;
 }
 
@@ -37,173 +37,131 @@ $logs_result = $conn->query("SELECT l.*, u.username FROM ActivityLogs l LEFT JOI
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Todo App Pro</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../assets/css/style1.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        .admin-container {
-            width: 95%; max-width: 1600px;
-            margin: 30px auto;
-            background: #fff; padding: 30px; border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        }
-
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 30px; }
-        .dash-card { background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
-        .dash-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .dash-card h2 { font-size: 2.2rem; margin: 0; color: #333; }
-        .dash-card p { color: #666; margin: 5px 0 0; font-size: 1.1em; }
-        .dash-icon { font-size: 3rem; opacity: 0.8; }
-
-        .dashboard-row { display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 30px; }
-        .dashboard-col-chart { flex: 1; min-width: 350px; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 25px; }
-        .dashboard-col-users { flex: 2; min-width: 500px; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 25px; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; color: #495057; }
-
-        .role-badge { padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
-        .badge-admin { background: #e8daef; color: #8e44ad; }
-        .badge-user { background: #d1ecf1; color: #0c5460; }
-
-        .badge-log { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; display: inline-block; width: 90px; text-align: center; }
-        .c-create   { background: #d4edda; color: #155724; }
-        .c-update   { background: #cce5ff; color: #004085; }
-        .c-delete   { background: #f8d7da; color: #721c24; }
-        .c-login    { background: #fff3cd; color: #856404; }
-        .c-register { background: #e8daef; color: #6f42c1; border: 1px solid #d2b4de; }
-
-        .header-actions { display: flex; gap: 10px; }
-    </style>
 </head>
-<body style="background-color: #f4f6f9;">
+<body>
 
-<div class="admin-container">
+<?php
+$path_to_root = '../';
+include '../includes/sidebar.php';
+?>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f4f6f9; padding-bottom: 20px;">
-        <div>
-            <h2 style="color: #007bff; margin-bottom: 5px;"><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
-            <span style="color: #888; font-size: 1rem;">Welcome back, <strong><?php echo $_SESSION['username']; ?></strong></span>
-        </div>
-
-        <div class="header-actions">
-            <a href="../home.php" class="btn btn-secondary"><i class="fas fa-home"></i> App Home</a>
-            <a href="../auth/logout.php" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </div>
+<div class="main-content">
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: #2c3e50; margin: 0;"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
+        <p style="color: #7f8c8d; margin-top: 5px;">Welcome back, <strong><?php echo $_SESSION['username']; ?></strong></p>
     </div>
 
     <div class="card-grid">
-        <a href="manage_users.php" style="text-decoration: none; color: inherit;">
-            <div class="dash-card" style="border-left: 5px solid #007bff; cursor: pointer;">
-                <div><h2><?php echo $stats['users']; ?></h2><p>Total Users</p></div>
-                <div class="dash-icon" style="color: #007bff;"><i class="fas fa-users"></i></div>
+        <a href="manage_users.php" class="dash-card card-users">
+            <div>
+                <h2><?php echo $stats['users']; ?></h2>
+                <p>Total Users</p>
             </div>
+            <div class="dash-icon"><i class="fas fa-users"></i></div>
         </a>
 
-        <a href="logs.php" style="text-decoration: none; color: inherit;">
-            <div class="dash-card" style="border-left: 5px solid #ffc107; cursor: pointer;">
-                <div><h2><?php echo $stats['logs']; ?></h2><p>System Logs</p></div>
-                <div class="dash-icon" style="color: #ffc107;"><i class="fas fa-file-alt"></i></div>
+        <a href="logs.php" class="dash-card card-logs">
+            <div>
+                <h2><?php echo $stats['logs']; ?></h2>
+                <p>System Logs</p>
             </div>
+            <div class="dash-icon"><i class="fas fa-file-alt"></i></div>
         </a>
 
-        <div class="dash-card" style="border-left: 5px solid #28a745;">
-            <div><h4 style="margin:0; font-size: 1.8rem;">PHP <?php echo phpversion(); ?></h4><p>Server Info</p></div>
-            <div class="dash-icon" style="color: #28a745;"><i class="fas fa-server"></i></div>
+        <div class="dash-card card-server">
+            <div>
+                <h2 style="font-size: 1.8rem;">PHP <?php echo phpversion(); ?></h2>
+                <p>Server Info</p>
+            </div>
+            <div class="dash-icon"><i class="fas fa-server"></i></div>
         </div>
     </div>
 
-    <div class="dashboard-row">
-
-        <div class="dashboard-col-chart">
-            <h3 style="margin-top: 0; color: #333;">
-                System Tasks: <strong><?php echo number_format($total_system_tasks); ?> Task(s)</strong>
-            </h3>
-
-            <div style="height: 300px; position: relative;">
+    <div class="dashboard-row" style="margin-bottom: 30px;">
+        <div class="dashboard-col">
+            <h3 class="panel-title">System Tasks (<?php echo number_format($total_system_tasks); ?>)</h3>
+            <div style="height: 250px; position: relative;">
                 <canvas id="taskChart"></canvas>
             </div>
         </div>
 
-        <div class="dashboard-col-users">
+        <div class="dashboard-col">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin-top: 0; color: #333;">Latest Users (5)</h3>
-                <a href="manage_users.php" style="font-size: 0.9em; text-decoration: none; color: #007bff; font-weight: bold;">Manage Users &rarr;</a>
+                <h3 class="panel-title" style="margin:0; border:none;">New Users</h3>
+                <a href="manage_users.php" style="font-size: 0.9em; text-decoration: none; color: #3498db;">View All &rarr;</a>
             </div>
-
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
+            <table class="table-clean">
+                <thead>
+                <tr><th>User</th><th>Role</th></tr>
+                </thead>
+                <tbody>
+                <?php while($u = $users_result->fetch_assoc()): ?>
                     <tr>
-                        <th>User</th>
-                        <th>Role</th>
+                        <td>
+                            <strong><?php echo htmlspecialchars($u['username']); ?></strong>
+                            <div style="font-size: 0.8em; color: #888;"><?php echo htmlspecialchars($u['email'] ?? ''); ?></div>
+                        </td>
+                        <td>
+                            <span class="role-badge <?php echo ($u['role']=='admin') ? 'badge-admin' : 'badge-user'; ?>">
+                                <?php echo $u['role']; ?>
+                            </span>
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    <?php while($u = $users_result->fetch_assoc()): ?>
-                        <tr>
-                            <td>
-                                <strong><?php echo htmlspecialchars($u['username']); ?></strong>
-                                <div style="font-size: 0.8em; color: #888;"><?php echo htmlspecialchars($u['email'] ?? ''); ?></div>
-                            </td>
-                            <td>
-                                <span class="role-badge <?php echo ($u['role']=='admin') ? 'badge-admin' : 'badge-user'; ?>">
-                                    <?php echo $u['role']; ?>
-                                </span>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
+                <?php endwhile; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="dashboard-row">
-        <div style="width: 100%; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #333;">Recent Activity Logs</h3>
-                <a href="logs.php" style="font-size: 0.9em; text-decoration: none; color: #007bff; font-weight: bold;">View All Logs &rarr;</a>
-            </div>
+    <div class="dashboard-col" style="width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 class="panel-title" style="margin:0; border:none;">Recent Activity Logs</h3>
+            <a href="logs.php" style="font-size: 0.9em; text-decoration: none; color: #3498db;">View All &rarr;</a>
+        </div>
 
-            <div style="overflow-x: auto;">
-                <table style="font-size: 0.95em;">
-                    <thead>
+        <div style="overflow-x: auto;">
+            <table class="table-clean">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php while($log = $logs_result->fetch_assoc()):
+                    // Badge Logic
+                    $bg = '#eee'; $color = '#333';
+                    if($log['action_type'] == 'DELETE') { $bg = '#ffebee'; $color = '#c62828'; }
+                    if($log['action_type'] == 'CREATE') { $bg = '#e8f5e9'; $color = '#2e7d32'; }
+                    if($log['action_type'] == 'LOGIN')  { $bg = '#e3f2fd'; $color = '#1565c0'; }
+                    ?>
                     <tr>
-                        <th style="width: 15%;">Time</th>
-                        <th style="width: 15%;">User</th>
-                        <th style="width: 10%;">Action</th>
-                        <th style="width: 15%;">Target</th>
-                        <th>Details</th>
+                        <td style="color: #999; font-size: 0.9em; white-space: nowrap;">
+                            <?php echo date("M d, H:i", strtotime($log['created_at'])); ?>
+                        </td>
+                        <td style="font-weight: 600;"><?php echo htmlspecialchars($log['username'] ?? 'System'); ?></td>
+                        <td>
+                            <span style="background: <?php echo $bg; ?>; color: <?php echo $color; ?>; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                                <?php echo $log['action_type']; ?>
+                            </span>
+                        </td>
+                        <td style="color: #555;">
+                            <?php echo htmlspecialchars($log['target_table']); ?>
+                        </td>
+                        <td style="color: #666; font-size: 0.95em;">
+                            <?php echo htmlspecialchars($log['details']); ?>
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    <?php while($log = $logs_result->fetch_assoc()):
-                        $badge = 'c-update';
-                        switch($log['action_type']) {
-                            case 'CREATE':   $badge = 'c-create'; break;
-                            case 'UPDATE':   $badge = 'c-update'; break;
-                            case 'DELETE':   $badge = 'c-delete'; break;
-                            case 'LOGIN':    $badge = 'c-login'; break;
-                            case 'REGISTER': $badge = 'c-register'; break;
-                        }
-                        ?>
-                        <tr>
-                            <td style="color:#888; white-space:nowrap;"><?php echo date("d/m H:i", strtotime($log['created_at'])); ?></td>
-                            <td><?php echo htmlspecialchars($log['username'] ?? 'System'); ?></td>
-                            <td>
-                                <span class="badge-log <?php echo $badge; ?>"><?php echo $log['action_type']; ?></span>
-                            </td>
-                            <td><?php echo htmlspecialchars($log['target_table']); ?></td>
-                            <td><?php echo htmlspecialchars($log['details']); ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
+                <?php endwhile; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -211,14 +169,14 @@ $logs_result = $conn->query("SELECT l.*, u.username FROM ActivityLogs l LEFT JOI
 
 <script>
     const ctx = document.getElementById('taskChart').getContext('2d');
-    const taskChart = new Chart(ctx, {
+    new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: <?php echo $json_chart_labels; ?>,
             datasets: [{
                 data: <?php echo $json_chart_values; ?>,
-                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545'],
-                borderWidth: 1
+                backgroundColor: ['#f1c40f', '#3498db', '#2ecc71', '#e74c3c'],
+                borderWidth: 0
             }]
         },
         options: {

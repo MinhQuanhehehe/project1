@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 global $conn;
 include '../../config/db_connect.php';
 
@@ -48,7 +46,6 @@ if (isset($_GET['delete'])) {
     $stmt_del->close();
 }
 
-// Tags in db
 $tags_result = $conn->query("SELECT * FROM Tags WHERE user_id = $user_id ORDER BY tag_name");
 ?>
 
@@ -56,109 +53,120 @@ $tags_result = $conn->query("SELECT * FROM Tags WHERE user_id = $user_id ORDER B
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Tags - Todo App Pro</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <title>Manage Tags</title>
+    <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .manager-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #fff;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #eee;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            transition: all 0.2s;
-        }
-        .manager-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .icon-large-box {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1.2rem;
-            margin-right: 15px;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-        }
-    </style>
+        <style>
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-back:hover {
+        transform: scale(1.1);
+        background-color: #f8f9fa;
+        color: #343a40;
+        border-color: #adb5bd;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .btn-create {
+        background-color: #007bff !important;
+        color: white !important;
+        border: none;
+        padding: 0 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        font-weight: 600;
+    }
+    .btn-create:hover {
+        background-color: #0056b3 !important;
+        transform: translateY(-5px);
+        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+    }
+</style>
 </head>
 <body>
-<div class="container auth-container">
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2><i class="fas fa-tags" style="color: #17a2b8;"></i> Manage Tags</h2>
-        <a href="../../home.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+<?php
+$path_to_root = '../../';
+include '../../includes/sidebar.php';
+?>
+
+<div class="main-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
+        <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-tags"></i> Manage Tags</h2>
+        <a href="../../home.php" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
     </div>
 
     <?php if ($error): ?>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <?php echo htmlspecialchars($error); ?>
         </div>
     <?php endif; ?>
     <?php if ($success): ?>
-        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <?php echo htmlspecialchars($success); ?>
         </div>
     <?php endif; ?>
 
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #e9ecef; margin-bottom: 30px;">
-        <h4 style="margin-bottom: 15px;">Create New Tag</h4>
-        <form action="manage_tags.php" method="POST" style="display: flex; gap: 10px; align-items: center;">
+    <div style="background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px;">
+        <h4 style="margin-top: 0; margin-bottom: 15px; color: #555;">Create New Tag</h4>
+        <form action="manage_tags.php" method="POST" style="display: flex; gap: 15px; align-items: flex-end;">
             <input type="hidden" name="add_tag" value="1">
 
-            <div style="flex: 2; margin-bottom: 0;">
-                <input type="text" name="tag_name" required placeholder="Tag Name (e.g. Urgent, Bug...)" style="margin-bottom: 0;">
+            <div style="flex: 2;">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Tag Name</label>
+                <input type="text" name="tag_name" required placeholder="e.g. Urgent, Bug, Idea..." class="filter-field">
             </div>
 
-            <div style="flex: 0 0 50px; margin-bottom: 0;">
-                <input type="color" name="color_code" value="#17a2b8" style="height: 42px; padding: 2px; margin-bottom: 0; width: 100%;">
+            <div style="flex: 0 0 100px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Color</label>
+                <input type="color" name="color_code" value="#17a2b8" style="height: 42px; padding: 2px; width: 100%; border: 1px solid #ced4da; border-radius: 6px;">
             </div>
 
-            <div style="flex: 0 0 50px; margin-bottom: 0;">
-                <button type="submit" class="btn" style="width: 100%; height: 42px; padding: 0; border-radius: 8px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
+            <button type="submit" class="btn-create" style="height: 42px;"><i class="fas fa-plus"></i></button>
         </form>
     </div>
 
-    <h3>Your Tags</h3>
+    <h3 style="color: #2c3e50; margin-bottom: 15px;">Your Tags</h3>
     <?php if ($tags_result->num_rows > 0): ?>
         <div class="list-container">
             <?php while($tag = $tags_result->fetch_assoc()): ?>
                 <div class="manager-item">
-                    <div style="display: flex; align-items: center;">
-                        <div class="icon-large-box" style="background-color: <?php echo $tag['color_code']; ?>;">
+
+                    <div class="manager-item-left">
+                        <div class="icon-large-box" style="background-color: <?php echo htmlspecialchars($tag['color_code']); ?>;">
                             <i class="fas fa-tag"></i>
                         </div>
 
-                        <div>
-                            <div style="font-weight: 700; font-size: 1.1rem; color: #333;">
-                                <?php echo htmlspecialchars($tag['tag_name']); ?>
-                            </div>
-                            <div style="font-size: 0.85rem; color: <?php echo $tag['color_code']; ?>;">
+                        <div class="manager-info">
+                            <div><?php echo htmlspecialchars($tag['tag_name']); ?></div>
+                            <div style="color: <?php echo htmlspecialchars($tag['color_code']); ?>">
                                 <?php echo htmlspecialchars($tag['color_code']); ?>
                             </div>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px;">
-                        <a href="edit_tag.php?id=<?php echo $tag['tag_id']; ?>" class="btn-icon"
-                           style="background: #e2e6ea; color: #495057;" title="Edit Tag">
+                    <div class="manager-actions">
+                        <a href="edit_tag.php?id=<?php echo $tag['tag_id']; ?>" class="action-icon icon-edit" title="Edit">
                             <i class="fas fa-pen"></i>
                         </a>
-
-                        <a href="manage_tags.php?delete=<?php echo $tag['tag_id']; ?>" class="btn-icon"
-                           style="background: #ffebee; color: #dc3545;" title="Delete Tag"
-                           onclick="return confirm('Delete this tag? Tasks using this tag will not be deleted.');">
+                        <a href="manage_tags.php?delete=<?php echo $tag['tag_id']; ?>" class="action-icon icon-delete" title="Delete"
+                           onclick="return confirm('Delete this tag? Tasks using this tag will NOT be deleted.');">
                             <i class="fas fa-trash"></i>
                         </a>
                     </div>
@@ -166,7 +174,7 @@ $tags_result = $conn->query("SELECT * FROM Tags WHERE user_id = $user_id ORDER B
             <?php endwhile; ?>
         </div>
     <?php else: ?>
-        <p style="text-align: center; color: #888;">No tags found. Create one above!</p>
+        <p style="text-align: center; color: #888; padding: 30px;">No tags found. Create one above!</p>
     <?php endif; ?>
 
 </div>

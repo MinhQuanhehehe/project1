@@ -31,8 +31,13 @@
 }
 
 body {
-    background: var(--gradient) no-repeat fixed;
-    background-size: cover;
+    background-image: url('background.jpg') ; 
+    
+    background-size: cover;          /* Giúp hình ảnh bao phủ toàn bộ màn hình */
+    background-position: center;     /* Căn giữa hình nền */
+    background-repeat: no-repeat;    /* Không lặp lại hình ảnh */
+    background-attachment: fixed;    /* Giữ hình nền cố định khi cuộn */
+    
     font-family: var(--font-family);
     color: var(--color-text);
     line-height: 1.5;
@@ -41,6 +46,7 @@ body {
     align-items: flex-start;
     min-height: 100vh;
     padding: 40px 20px;
+    margin: 0; /* Đảm bảo không có lề mặc định xung quanh body */
 }
 
 a { text-decoration: none; color: inherit; transition: var(--transition); }
