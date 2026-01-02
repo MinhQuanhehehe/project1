@@ -84,8 +84,30 @@ $formatted_date = $task['due_date'] ? date('Y-m-d\TH:i', strtotime($task['due_da
 <head>
     <meta charset="UTF-8">
     <title>Edit Task</title>
-    <link rel="stylesheet" href="../../assets/css/style1.css?v=1.0">
+    <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+        /* Nút Dashboard (Back) */
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+            background-color: transparent; color: #6c757d; border: 1px solid #dee2e6;
+            border-radius: 6px; text-decoration: none; transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .btn-primary-large {
+            background-color: #007bff !important; color: white !important;
+            width: 100%; padding: 15px; border: none; border-radius: 8px;
+            font-weight: 700; font-size: 1.1em; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-primary-large:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            background-color: #0056b3 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -98,7 +120,7 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-edit"></i> Edit Task</h2>
-        <a href="../../home.php" class="btn btn-secondary">
+        <a href="../../home.php" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
@@ -183,7 +205,7 @@ include '../../includes/sidebar.php';
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary-large">Save Changes</button>
+                <button type="submit" class="btn btn-primary-large">Save</button>
             </div>
         </form>
     </div>
