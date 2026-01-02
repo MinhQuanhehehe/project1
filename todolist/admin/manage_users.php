@@ -45,6 +45,74 @@ $users_result = $stmt->get_result();
     <title>Manage Users</title>
     <link rel="stylesheet" href="../assets/css/style1.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+            .btn-back {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 16px;
+                background-color: transparent;
+                color: #6c757d;
+                border: 1px solid #dee2e6; /* Viền mỏng */
+                border-radius: 6px;
+                text-decoration: none;
+                font-weight: 500;
+                transition: all 0.3s ease; /* Hiệu ứng mượt */
+            }
+
+            .btn-back:hover {
+                transform: scale(1.1); /* Phóng to lên 10% */
+                background-color: #f8f9fa;
+                color: #343a40;
+                border-color: #adb5bd;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }    
+            .btn-search {
+                    background-color: #007bff !important;
+                    color: white !important;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    height: 42px;
+                }
+
+                .btn-search:hover {
+                    background-color: #0056b3 !important;
+                    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+                    transform: translateY(-5px);
+                }
+        .btn-clear {
+            background-color: #6c757d !important;
+            color: white !important;
+            border: none;
+            height: 42px;
+            padding: 0 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .btn-clear:hover {
+            background-color: #5a6268 !important;
+            box-shadow: 0 4px 6px rgba(94, 105, 117, 0.2);
+            transform: translateY(-5px);
+        }
+        .filter-field {
+            height: 42px;
+            border-radius: 6px;
+            border: 2px solid #2962ffff;
+            padding: 0 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
 
@@ -60,7 +128,7 @@ include '../includes/sidebar.php';
             <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-users-cog"></i> Manage Users</h2>
             <span style="color: #7f8c8d; font-size: 0.9em;">Found <?php echo $users_result->num_rows; ?> users</span>
         </div>
-        <a href="admin.php" class="btn btn-secondary">
+        <a href="admin.php" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
@@ -78,9 +146,9 @@ include '../includes/sidebar.php';
                 <option value="admin" <?php echo $filter_role==='admin'?'selected':''; ?>>Admin</option>
             </select>
         </div>
-        <button type="submit" class="btn"><i class="fas fa-search"></i> Search</button>
+        <button type="submit" class="btn-search"><i class="fas fa-search"></i></button>
         <?php if(!empty($search) || !empty($filter_role)): ?>
-            <a href="manage_users.php" class="btn btn-secondary">Clear</a>
+            <a href="manage_users.php" class="btn-clear"><i class="fas fa-times"></i></a>
         <?php endif; ?>
     </form>
 
