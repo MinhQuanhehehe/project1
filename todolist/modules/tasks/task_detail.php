@@ -17,7 +17,6 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 }
 $task_id = $_GET['id'];
 
-// --- 1. LOGIC REDIRECT URL (Nút Back & Giữ trạng thái) ---
 $redirect_url = '../../home.php'; // Mặc định
 if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
     $redirect_url = $_GET['redirect_url'];
@@ -27,13 +26,11 @@ if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
         $redirect_url = $_SERVER['HTTP_REFERER'];
     }
 }
-
-// Tạo URL của chính trang này (để sau khi toggle/edit xong thì quay lại đây)
-// Quan trọng: urlencode để không bị lỗi tham số
+if (strpos($redirect_url, 'view_list.php') !== false && strpos($redirect_url, 'lists/') === false) {
+    $redirect_url = '../lists/' . $redirect_url;
+}
 $current_page_url = "task_detail.php?id=" . $task_id . "&redirect_url=" . urlencode($redirect_url);
-// ---------------------------------------------------------
 
-// Query main Task data
 $sql = "SELECT t.*, l.list_name, l.color_code 
         FROM Tasks t 
         LEFT JOIN Lists l ON t.list_id = l.list_id 
