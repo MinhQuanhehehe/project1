@@ -123,6 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: #adb5bd;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        .btn-primary-large {
+            background-color: #007bff !important; color: white !important;
+            width: 100%; padding: 15px; border: none; border-radius: 8px;
+            font-weight: 700; font-size: 1.1em; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-primary-large:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            background-color: #0056b3 !important;
+        }
     </style>
 </head>
 <body>
@@ -166,9 +176,9 @@ include '../includes/sidebar.php';
                 <label class="form-label">Confirm New Password</label>
                 <input type="password" name="confirm_password" class="form-control" required>
             </div>
-            <button type="submit" class="btn-submit">
-                <i class="fas fa-save"></i> Update Password
-            </button>
+            <div class="form-actions" style="align-items: center; justify-content: center">
+                <button type="submit" class="btn btn-primary-large" style="width: 20%"><i class="fas fa-save"></i></button>
+            </div>
         </form>
     </div>
 </div>

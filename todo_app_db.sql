@@ -8,7 +8,8 @@ CREATE TABLE Users (
                        email VARCHAR(100) NULL UNIQUE,
                        password_hash VARCHAR(255) NOT NULL,
                        role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       remember_token VARCHAR(255) NULL
 );
 
 CREATE TABLE Lists (

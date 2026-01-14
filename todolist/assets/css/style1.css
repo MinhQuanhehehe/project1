@@ -586,16 +586,16 @@
     align-items: center;
 }
 .btn-primary-large {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 6px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
+    background-color: #007bff !important; color: white !important;
+    width: 100%; padding: 15px; border: none; border-radius: 8px;
+    font-weight: 700; font-size: 1.1em; cursor: pointer; transition: all 0.3s ease;
 }
-.btn-primary-large:hover { background: #0056b3; }
+.btn-primary-large:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+    background-color: #0056b3 !important;
+}
+
 .btn-text { color: #666; font-weight: 600; text-decoration: underline; }
 
 /* --- TASK DETAIL CARD STYLES --- */

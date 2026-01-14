@@ -22,6 +22,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
+            if (isset($_POST['remember'])) {
+                $token = bin2hex(random_bytes(32));
+
+                $stmt_token = $conn->prepare("UPDATE Users SET remember_token = ? WHERE user_id = ?");
+                $stmt_token->bind_param("si", $token, $user['user_id']);
+                $stmt_token->execute();
+                $stmt_token->close();
+
+                setcookie('remember_token', $token, time() + (86400 * 30), "/");
+            }
+
+            // 3. Ghi Log đăng nhập
             $log_action = "LOGIN";
             $log_table = "Users";
             $log_detail = "User logged in successfully.";
@@ -51,11 +63,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Todo App Pro</title>
     <link rel="stylesheet" href="../assets/css/style.css?v=1.0">
-    
+
     <style>
         body {
-            /* 1. ĐƯỜNG DẪN ẢNH: Lùi 1 cấp ra khỏi thư mục auth để tìm ảnh */
-            background-image: url('../assets/css/background.jpg'); 
+            background-image: url('../assets/css/background.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -68,15 +79,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Lớp phủ mờ giúp Form nổi bật hơn */
         .auth-container {
-            background: rgba(255, 255, 255, 0.8); /* Trắng trong suốt 90% */
+            background: rgba(255, 255, 255, 0.9); /* Tăng độ đậm lên xíu cho dễ đọc */
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             width: 100%;
             max-width: 400px;
-            backdrop-filter: blur(5px); /* Làm mờ nhẹ phần nền sau form */
+            backdrop-filter: blur(5px);
         }
 
         .auth-container h2 {
@@ -103,13 +113,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transform: translateY(-2px);
         }
 
-        input {
+        /* Style chung cho input text/password */
+        input[type="text"],
+        input[type="password"] {
             width: 100%;
             padding: 12px;
             margin: 10px 0 20px 0;
             border: 1px solid #ddd;
             border-radius: 6px;
-            box-sizing: border-box; /* Quan trọng để không bị tràn chiều rộng */
+            box-sizing: border-box;
+        }
+
+        /* Style riêng cho checkbox để nó thẳng hàng */
+        .remember-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            color: #555;
+            cursor: pointer;
+        }
+        .remember-group input[type="checkbox"] {
+            width: auto; /* Reset chiều rộng */
+            margin: 0;   /* Reset margin */
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
         }
     </style>
 </head>
@@ -126,13 +156,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
 
         <div>
-            <label for="username">Username</label>
+            <label for="username" style="font-weight: 600; display: block; margin-bottom: 5px;">Username</label>
             <input type="text" id="username" name="username" required placeholder="Enter username">
         </div>
         <div>
-            <label for="password">Password</label>
+            <label for="password" style="font-weight: 600; display: block; margin-bottom: 5px;">Password</label>
             <input type="password" id="password" name="password" required placeholder="Enter password">
         </div>
+
+        <label class="remember-group">
+            <input type="checkbox" name="remember" value="1">
+            Remember Me
+        </label>
 
         <button type="submit" class="btn">Login</button>
 

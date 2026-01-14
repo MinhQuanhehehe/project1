@@ -244,7 +244,6 @@ include '../../includes/sidebar.php';
                 </div>
                 <h3 style="margin: 0; color: #333;">It's empty!</h3>
                 <p>No tasks found in <?php echo htmlspecialchars($list_info['list_name']); ?>.</p>
-                <a href="../tasks/create_task.php?<?php echo $is_inbox ? '' : 'list_id='.$list_id.'&'; ?>redirect_url=<?php echo urlencode($current_url); ?>" class="btn" style="margin-top: 10px;">Create Task</a>
             </div>
         <?php endif; ?>
     </div>

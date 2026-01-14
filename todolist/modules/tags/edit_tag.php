@@ -1,21 +1,19 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 global $conn;
 include '../../config/db_connect.php';
 
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
-if (!$user_id) {
-    header("Location: ../../home.php");
-    exit;
-}
+if (!$user_id) { header("Location: ../../auth/login.php"); exit; }
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: manage_tags.php");
     exit;
 }
 $tag_id = $_GET['id'];
+
+$redirect_url = 'manage_tags.php';
+
 $error_message = '';
 
 // UPDATE
@@ -37,7 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_log->bind_param("iis", $user_id, $tag_id, $detail);
             $stmt_log->execute();
 
-            header("Location: manage_tags.php?status=edited");
+            // Redirect về trang cũ
+            $connector = (strpos($redirect_url, '?') !== false) ? '&' : '?';
+            header("Location: " . $redirect_url . $connector . "msg=edited");
             exit;
         } else {
             $error_message = "Failed to update tag.";
@@ -58,41 +58,48 @@ if (!$tag) { header("Location: manage_tags.php"); exit; }
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Tag</title>
+    <title>Edit Tag - Todo Pro</title>
     <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-        <style>
-    .btn-save {
-        background-color: #007bff !important;
-        color: white !important;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    .btn-save:hover {
-        background-color: #0056b3 !important;
-        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
-        transform: translateY(-5px);
-    }
-    /* Nút Cancel tương tự nút Back nhưng không có icon */
-    .btn-cancel {
-        display: inline-flex;
-        align-items: center;
-        padding: 10px 20px;
-        background-color: transparent;
-        color: #6c757d;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    .btn-cancel:hover {
-        transform: translateY(-5px);
-        background-color: #f8f9fa;
-    }
+    <style>
+        /* Đồng nhất style nút Back */
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+            background-color: transparent; color: #6c757d; border: 1px solid #dee2e6;
+            border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            transform: scale(1.1); background-color: #f8f9fa; color: #343a40;
+            border-color: #adb5bd; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Form Card Layout */
+        .form-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .btn-primary-large {
+            background-color: #007bff !important; color: white !important;
+            width: 100%; padding: 15px; border: none; border-radius: 8px;
+            font-weight: 700; font-size: 1.1em; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-primary-large:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            background-color: #0056b3 !important;
+        }
+
+        .form-label { font-weight: 600; display: block; margin-bottom: 8px; color: #2c3e50; }
+        .form-input {
+            width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;
+            font-size: 1rem; box-sizing: border-box;
+        }
+        .form-input:focus { border-color: #007bff; outline: none; }
     </style>
 </head>
 <body>
@@ -103,33 +110,43 @@ include '../../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
-        <h2 style="margin-top: 0; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
+        <h2 style="margin: 0; color: #2c3e50;">
             <i class="fas fa-tag" style="color: <?php echo htmlspecialchars($tag['color_code']); ?>;"></i> Edit Tag
         </h2>
 
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="form-card">
         <?php if (!empty($error_message)): ?>
-            <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-                <?php echo htmlspecialchars($error_message); ?>
+            <div style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error_message); ?>
             </div>
         <?php endif; ?>
 
         <form action="edit_tag.php?id=<?php echo $tag_id; ?>" method="POST">
-            <div style="margin-bottom: 15px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Tag Name</label>
-                <input type="text" name="tag_name" value="<?php echo htmlspecialchars($tag['tag_name']); ?>" required class="filter-field">
-            </div>
+            <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
+
             <div style="margin-bottom: 20px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Color</label>
-                <input type="color" name="color_code" value="<?php echo htmlspecialchars($tag['color_code'] ?? '#17a2b8'); ?>" style="height: 45px; width: 100%; padding: 2px; border: 1px solid #ced4da; border-radius: 6px;">
+                <label class="form-label">Tag Name</label>
+                <input type="text" name="tag_name" value="<?php echo htmlspecialchars($tag['tag_name']); ?>" required class="form-input" placeholder="Enter tag name...">
             </div>
 
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn-save">Save</button>
-                <a href="manage_tags.php" class="btn-cancel">Cancel</a>
+            <div style="margin-bottom: 30px;">
+                <label class="form-label">Color Label</label>
+                <input type="color" name="color_code" value="<?php echo htmlspecialchars($tag['color_code'] ?? '#17a2b8'); ?>" style="height: 50px; width: 100%; padding: 2px; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer;">
+            </div>
+
+            <div class="form-actions" style="align-items: center; justify-content: center">
+                <button type="submit" class="btn btn-primary-large" style="width: 20%"><i class="fas fa-save"></i></button>
             </div>
         </form>
     </div>
+
 </div>
 </body>
 </html>

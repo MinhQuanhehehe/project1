@@ -16,14 +16,15 @@ Một ứng dụng web quản lý công việc toàn diện, hỗ trợ phân qu
 ### Cấu trúc bảng
 
 #### **Bảng `Users`**
-| Trường | Kiểu dữ liệu | Mô tả |
-|--------|--------------|------|
-| `user_id` | INT (PK) | ID định danh duy nhất |
-| `username` | VARCHAR (UNIQUE) | Tên đăng nhập |
-| `email` | VARCHAR (UNIQUE) | Email người dùng |
-| `password_hash` | VARCHAR | Mật khẩu (đã mã hóa) |
-| `role` | ENUM('user', 'admin') | Phân quyền hệ thống |
-| `created_at` | TIMESTAMP | Ngày tạo tài khoản |
+| Trường | Kiểu dữ liệu | Mô tả                             |
+|----|--------------|-----------------------------------|
+| `user_id` | INT (PK) | ID định danh duy nhất             |
+| `username` | VARCHAR (UNIQUE) | Tên đăng nhập                     |
+| `email` | VARCHAR (UNIQUE) | Email người dùng                  |
+| `password_hash` | VARCHAR | Mật khẩu (đã mã hóa)              |
+| `role` | ENUM('user', 'admin') | Phân quyền hệ thống               |
+| `created_at` | TIMESTAMP | Ngày tạo tài khoản                |
+| `remember_token` | VARCHAR(255) | Token ghi nhớ đăng nhập (Cookies) |
 
 #### **Bảng `Lists` (Danh mục)**
 | Trường | Kiểu dữ liệu | Mô tả |
