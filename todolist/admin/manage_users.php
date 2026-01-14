@@ -8,6 +8,21 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
+$redirect_url = 'admin.php';
+
+if (isset($_GET['redirect']) && !empty($_GET['redirect'])) {
+    $redirect_url = $_GET['redirect'];
+}
+elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'manage_users.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
+$query_params = $_GET;
+$query_params['redirect'] = $redirect_url;
+$current_url = 'manage_users.php?' . http_build_query($query_params);
+
 $search = $_GET['search'] ?? '';
 $filter_role = $_GET['role'] ?? '';
 $where_clauses = ["1=1"]; $params = []; $types = "";
@@ -128,12 +143,18 @@ include '../includes/sidebar.php';
             <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-users-cog"></i> Manage Users</h2>
             <span style="color: #7f8c8d; font-size: 0.9em;">Found <?php echo $users_result->num_rows; ?> users</span>
         </div>
-        <a href="admin.php" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        <div>
+            <a href="admin.php" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
     </div>
 
     <form action="manage_users.php" method="GET" class="filter-wrapper" style="display: flex; gap: 15px; align-items: flex-end;">
+        <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect_url); ?>">
         <div style="flex: 2;">
             <label style="font-weight: 600; font-size: 0.9em; display: block; margin-bottom: 5px;">Search</label>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Username or Email..." class="filter-field">
@@ -148,7 +169,7 @@ include '../includes/sidebar.php';
         </div>
         <button type="submit" class="btn-search"><i class="fas fa-search"></i></button>
         <?php if(!empty($search) || !empty($filter_role)): ?>
-            <a href="manage_users.php" class="btn-clear"><i class="fas fa-times"></i></a>
+            <a href="manage_users.php?redirect=<?php echo urlencode($redirect_url); ?>" class="btn-clear"><i class="fas fa-times"></i></a>
         <?php endif; ?>
     </form>
 
@@ -176,7 +197,7 @@ include '../includes/sidebar.php';
                             <form action="admin_actions.php" method="POST" style="margin: 0;">
                                 <input type="hidden" name="action" value="update_role">
                                 <input type="hidden" name="user_id" value="<?php echo $u['user_id']; ?>">
-                                <input type="hidden" name="redirect" value="manage_users.php">
+                                <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($current_url); ?>">
                                 <select name="role" onchange="this.form.submit()" class="role-select" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                     <option value="user" <?php echo ($u['role']=='user')?'selected':''; ?>>User</option>
                                     <option value="admin" <?php echo ($u['role']=='admin')?'selected':''; ?>>Admin</option>
@@ -189,12 +210,12 @@ include '../includes/sidebar.php';
                     <td style="padding: 15px; color: #7f8c8d;"><?php echo date("M d, Y", strtotime($u['created_at'])); ?></td>
                     <td style="padding: 15px; text-align: right;">
                         <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                            <a href="admin_actions.php?action=reset_pass&id=<?php echo $u['user_id']; ?>&redirect=manage_users.php"
+                            <a href="admin_actions.php?action=reset_pass&id=<?php echo $u['user_id']; ?>&redirect=<?php echo urlencode($current_url); ?>"
                                class="action-icon" onclick="return confirm('Reset password to 123456?');" title="Reset Password">
                                 <i class="fas fa-key"></i>
                             </a>
                             <?php if($u['user_id'] != $_SESSION['user_id']): ?>
-                                <a href="admin_actions.php?action=delete_user&id=<?php echo $u['user_id']; ?>&redirect=manage_users.php"
+                                <a href="admin_actions.php?action=delete_user&id=<?php echo $u['user_id']; ?>&redirect=<?php echo urlencode($current_url); ?>"
                                    class="action-icon icon-delete" onclick="return confirm('Delete this user?');" title="Delete User">
                                     <i class="fas fa-trash"></i>
                                 </a>

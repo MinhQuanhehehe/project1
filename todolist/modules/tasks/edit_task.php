@@ -3,6 +3,18 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 global $conn;
 include '../../config/db_connect.php';
 
+$redirect_url = '../../home.php';
+
+if (isset($_POST['redirect_url']) && !empty($_POST['redirect_url'])) {
+    $redirect_url = $_POST['redirect_url'];
+}
+elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'edit_task.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
+
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
 if (!$user_id) {
     header("Location: ../../auth/login.php");
@@ -61,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Log
             $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'UPDATE', 'Tasks', $task_id, 'Updated task info and tags')");
 
-            header("Location: ../../home.php");
+            header("Location: " . $redirect_url);
             exit;
         } else {
             $error_message = "Error: " . $stmt->error;
@@ -120,8 +132,8 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-edit"></i> Edit Task</h2>
-        <a href="../../home.php" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
@@ -133,9 +145,10 @@ include '../../includes/sidebar.php';
         <?php endif; ?>
 
         <form action="" method="POST">
+            <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
             <div class="form-group">
                 <label>Title</label>
-                <input type="text" name="title" value="<?php echo htmlspecialchars($task['title']); ?>" required class="form-control" style="font-size: 1.1em; padding: 12px;">
+                <input type="text" name="title" value="<?php echo htmlspecialchars($task['title']); ?>" required class="form-control" style="font-size: 1em; padding: 12px;">
             </div>
 
             <div class="form-group">
@@ -189,23 +202,22 @@ include '../../includes/sidebar.php';
                     <?php endif; ?>
                 </div>
             </div>
-
-            <div class="form-group">
-                <label>Priority</label>
+            <label>Priority</label>
+            <div class="tag-selection-box">
                 <div class="priority-group">
-                    <label class="priority-option">
+                    <label class="tag-checkbox">
                         <input type="checkbox" name="is_important" value="1" <?php echo $task['is_important']?'checked':''; ?>>
                         <span style="color: #f1c40f;"><i class="fas fa-star"></i> Important</span>
                     </label>
-                    <label class="priority-option">
+                    <label class="tag-checkbox">
                         <input type="checkbox" name="is_urgent" value="1" <?php echo $task['is_urgent']?'checked':''; ?>>
                         <span style="color: #e74c3c;"><i class="fas fa-fire"></i> Urgent</span>
                     </label>
                 </div>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary-large">Save</button>
+            <div class="form-actions" style="align-items: center; justify-content: center">
+                <button type="submit" class="btn btn-primary-large" style="width: 20%"><i class="fas fa-save"></i></button>
             </div>
         </form>
     </div>

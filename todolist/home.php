@@ -188,7 +188,7 @@ include 'includes/sidebar.php';
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
                 <h3 style="margin:0; color: #e74c3c;"><i class="fas fa-fire"></i> Do First</h3>
-                <a href="modules/tasks/tasks.php?filter=urgent" class="btn-header-link">
+                <a href="modules/tasks/tasks.php?matrix_filter=do_first" class="btn-header-link">
                     View List <i class="fas fa-arrow-right"></i>
                 </a>
             </div>

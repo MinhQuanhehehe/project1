@@ -4,7 +4,12 @@ $path = isset($path_to_root) ? $path_to_root : './';
 $current_page = basename($_SERVER['PHP_SELF']);
 
 // Get active list from URL
-$active_list_id = isset($_GET['list_id']) ? $_GET['list_id'] : '';
+$active_list_id = '';
+if (isset($_GET['id'])) {
+    $active_list_id = $_GET['id'];
+} elseif (isset($_GET['list_id'])) {
+    $active_list_id = $_GET['list_id'];
+}
 
 // --- LOGIC: FETCH LISTS ---
 if (isset($conn) && isset($_SESSION['user_id'])) {
@@ -31,22 +36,35 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
         overflow-x: hidden;
     }
 
-    /* Hiệu ứng tuyết rơi toàn Sidebar */
-    .sidebar::after {
-        content: "❄";
+    .sidebar::before, .sidebar::after {
+        content: "";
         position: absolute;
-        top: -10%;
-        left: 50%;
-        font-size: 20px;
-        color: rgba(255, 255, 255, 0.3);
-        text-shadow: 40px 100px 0 rgba(255,255,255,0.2), -60px 250px 0 rgba(255,255,255,0.2), 30px 400px 0 rgba(255,255,255,0.2);
-        animation: snow-global 10s linear infinite;
+        top: 0; left: 0; right: 0; bottom: 0;
         pointer-events: none;
+        z-index: 1;
+    }
+    .sidebar::before {
+        background-image:
+                radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.7) 50%, transparent),
+                radial-gradient(2px 2px at 40% 70%, rgba(255,255,255,0.7) 50%, transparent),
+                radial-gradient(2px 2px at 50% 160%, rgba(255,255,255,0.7) 50%, transparent),
+                radial-gradient(2px 2px at 80% 120%, rgba(255,255,255,0.7) 50%, transparent);
+        background-size: 200px 200px;
+        animation: snow-fall 12s linear infinite;
     }
 
-    @keyframes snow-global {
-        0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(800px) rotate(360deg); }
+    .sidebar::after {
+        background-image:
+                radial-gradient(3px 3px at 10% 20%, rgba(255,255,255,0.5) 50%, transparent),
+                radial-gradient(3px 3px at 90% 80%, rgba(255,255,255,0.5) 50%, transparent),
+                radial-gradient(2.5px 2.5px at 50% 50%, rgba(255,255,255,0.5) 50%, transparent);
+        background-size: 300px 300px;
+        animation: snow-fall 7s linear infinite;
+    }
+
+    @keyframes snow-fall {
+        0% { background-position: 0 0; }
+        100% { background-position: 0 600px; }
     }
 
     /* Tiêu đề */
@@ -54,7 +72,7 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
         color: #00d4ff !important;
         text-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
     }
-    
+
     .sidebar-header p {
         color: #b3e5fc;
         font-size: 0.9em;
@@ -77,14 +95,13 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
         text-decoration: none;
         transition: all 0.4s ease;
         box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
-        border: 2px solid #e1f5fe;
         width: 100%;
         z-index: 1;
     }
 
     /* Băng rôn 2026 màu Đỏ rực rỡ */
     .btn-new-task::after {
-        content: "❄ 2026";
+        content: "2026";
         position: absolute;
         top: 5px;
         right: -20px;
@@ -122,7 +139,7 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
         padding: 10px 15px;
     }
 
-    .sidebar-menu li.active a, 
+    .sidebar-menu li.active a,
     .sidebar-menu li a:hover {
         background: rgba(255, 255, 255, 0.15) !important;
         color: #00e5ff !important;
@@ -149,37 +166,30 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
         color: #ff8a80 !important;
     }
     .sidebar {
-        background: linear-gradient(180deg, #004e92 0%, #000428 100%) !important;
-        color: #ffffff;
-        position: relative;
-        overflow-x: hidden;
         overflow-y: auto;
+        overflow-x: hidden;
         scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        scrollbar-color: rgba(255, 255, 255, 0) transparent;
+        transition: scrollbar-color 0.5s ease-in-out;
     }
-    .sidebar::-webkit-scrollbar {
-        width: 6px;
+    .sidebar:hover {
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     }
-    .sidebar::-webkit-scrollbar-track {
-        background: transparent;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
+    .sidebar::-webkit-scrollbar { width: 5px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
     .sidebar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.5);
-        cursor: pointer;
+    .sidebar:hover::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
     }
 </style>
 
 <div class="sidebar">
     <div class="sidebar-header" style="padding: 20px;">
-        <h3><i class="fas fa-snowflake"></i> Todo Pro</h3>
-        <p>Merry Christmas, <strong><?php echo htmlspecialchars($_SESSION['username'] ?? 'User'); ?></strong> 🎅</p>
+        <h3>Todo Pro</h3>
+        <p>Merry Christmas, <strong><?php echo htmlspecialchars($_SESSION['username'] ?? 'User'); ?></strong></p>
     </div>
 
     <div style="padding: 20px 20px 10px 20px; position: relative;">
@@ -217,7 +227,7 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
                 ?>
                 <li class="<?php echo $is_active ? 'active' : ''; ?>">
                     <a href="<?php echo $path; ?>modules/lists/view_list.php?id=<?php echo $s_list['list_id']; ?>">
-                        <span class="dot-icon" style="background-color: <?php echo $s_list['color_code']; ?>;"></span>
+                        <i class="fas fa-folder" style="color: <?php echo $s_list['color_code']; ?>"></i>
                         <?php echo htmlspecialchars($s_list['list_name']); ?>
                     </a>
                 </li>

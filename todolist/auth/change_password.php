@@ -6,12 +6,22 @@ include '../config/db_connect.php';
 // Check Authentication
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
-    header("Location: ../auth/login.php"); // Sửa lại đường dẫn nếu cần
+    header("Location: ../auth/login.php");
     exit;
 }
 
+$redirect_url = '../home.php';
+
+if (isset($_POST['redirect_url']) && !empty($_POST['redirect_url'])) {
+    $redirect_url = $_POST['redirect_url'];
+} elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'change_password.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
 $message = "";
-$msg_type = ""; 
+$msg_type = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $current_password = $_POST['current_password'] ?? '';
@@ -28,27 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "New password must be at least 6 characters long.";
         $msg_type = "error";
     } else {
-        // SỬA TẠI ĐÂY: Đổi 'password' thành 'password_hash' để khớp với DB
         $stmt = $conn->prepare("SELECT password_hash FROM Users WHERE user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($row = $result->fetch_assoc()) {
-            // SỬA TẠI ĐÂY: Dùng $row['password_hash']
             if (password_verify($current_password, $row['password_hash'])) {
-                
+
                 $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
 
-                // SỬA TẠI ĐÂY: Cập nhật cột 'password_hash'
                 $update_stmt = $conn->prepare("UPDATE Users SET password_hash = ? WHERE user_id = ?");
                 $update_stmt->bind_param("si", $new_hash, $user_id);
 
                 if ($update_stmt->execute()) {
-                    $message = "Password changed successfully!";
-                    $msg_type = "success";
-                    
-                    // Ghi log vào bảng ActivityLogs (Khớp với cấu trúc DB bạn đưa)
+                    // Log Activity
                     $log_details = "User changed their password.";
                     $log_stmt = $conn->prepare("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES (?, 'UPDATE', 'Users', ?, ?)");
                     $log_stmt->bind_param("iis", $user_id, $user_id, $log_details);
@@ -98,6 +102,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert { padding: 15px; margin-bottom: 20px; border-radius: 6px; display: flex; align-items: center; gap: 10px; }
         .alert-error { background-color: #fce4e4; color: #c0392b; border: 1px solid #f5c6cb; }
         .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background-color: transparent;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            transform: scale(1.05);
+            background-color: #f8f9fa;
+            color: #343a40;
+            border-color: #adb5bd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -108,9 +133,15 @@ include '../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <div style="margin-bottom: 30px;">
-        <h2 style="margin: 0; color: #2c3e50;">Change Password</h2>
-        <p style="color: #7f8c8d;">Update your security credentials.</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
+        <div>
+            <h2 style="margin: 0; color: #2c3e50;">Change Password</h2>
+            <p style="color: #7f8c8d; margin: 5px 0 0;">Update your security credentials.</p>
+        </div>
+
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
     </div>
 
     <div class="form-card">
@@ -122,6 +153,7 @@ include '../includes/sidebar.php';
         <?php endif; ?>
 
         <form action="" method="POST">
+            <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
             <div class="form-group">
                 <label class="form-label">Current Password</label>
                 <input type="password" name="current_password" class="form-control" required>

@@ -8,6 +8,17 @@ if (!$user_id) {
     exit;
 }
 
+$redirect_url = '../../home.php';
+
+if (isset($_POST['redirect_url']) && !empty($_POST['redirect_url'])) {
+    $redirect_url = $_POST['redirect_url'];
+}
+elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'create_task.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
 // LISTS & TAGS
 $lists = $conn->query("SELECT list_id, list_name FROM Lists WHERE user_id = $user_id ORDER BY list_name");
 $tags  = $conn->query("SELECT * FROM Tags WHERE user_id = $user_id ORDER BY tag_name");
@@ -43,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $detail = "Created task: " . $title;
             $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'CREATE', 'Tasks', $new_task_id, '$detail')");
 
-            header("Location: ../../home.php");
+            header("Location: " . $redirect_url);
             exit;
         } else {
             $error = "Error: " . $stmt->error;
@@ -93,8 +104,8 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-plus-circle"></i> Create New Task</h2>
-        <a href="../../home.php" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
@@ -106,9 +117,10 @@ include '../../includes/sidebar.php';
         <?php endif; ?>
 
         <form action="" method="POST">
+            <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
             <div class="form-group">
                 <label>Task Title <span style="color:red">*</span></label>
-                <input type="text" name="title" required placeholder="What needs to be done?" class="form-control" style="font-size: 1.1em; padding: 12px;">
+                <input type="text" name="title" required placeholder="What needs to be done?" class="form-control" style="font-size: 1em; padding: 12px;">
             </div>
 
             <div class="form-group">
@@ -139,9 +151,6 @@ include '../../includes/sidebar.php';
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <label style="margin-bottom: 0;"><i class="fas fa-tags"></i> Tags</label>
-                    <a href="../tags/manage_tags.php" style="font-size: 0.85em; color: #3498db; text-decoration: none;">
-                        <i class="fas fa-plus"></i> Manage Tags
-                    </a>
                 </div>
 
                 <div class="tag-selection-box">
@@ -160,22 +169,22 @@ include '../../includes/sidebar.php';
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Priority Matrix</label>
+            <label>Priority Matrix</label>
+            <div class="tag-selection-box">
                 <div class="priority-group">
-                    <label class="priority-option">
+                    <label class="tag-checkbox">
                         <input type="checkbox" name="is_important" value="1">
                         <span style="color: #f1c40f;"><i class="fas fa-star"></i> Important</span>
                     </label>
-                    <label class="priority-option">
+                    <label class="tag-checkbox">
                         <input type="checkbox" name="is_urgent" value="1">
                         <span style="color: #e74c3c;"><i class="fas fa-fire"></i> Urgent</span>
                     </label>
                 </div>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary-large">Create</button>
+            <div class="form-actions" style="align-items: center; justify-content: center">
+                <button type="submit" class="btn btn-primary-large" style="width: 20%"><i class="fas fa-plus"></i></button>
             </div>
         </form>
     </div>

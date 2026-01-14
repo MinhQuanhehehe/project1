@@ -2,6 +2,17 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 global $conn;
 
+$redirect_url = '../../home.php';
+
+if (isset($_POST['redirect_url']) && !empty($_POST['redirect_url'])) {
+    $redirect_url = $_POST['redirect_url'];
+}
+elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'create_task.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
 // 1. CHỈNH SỬA ĐƯỜNG DẪN CONFIG
 include '../../config/db_connect.php';
 
@@ -27,7 +38,16 @@ $filter_end_date = $_GET['end_date'] ?? '';
 // --- BUILD DESCRIPTION TEXT ---
 $filter_desc = [];
 if (!empty($search_query)) $filter_desc[] = "Keyword: <strong>" . htmlspecialchars($search_query) . "</strong>";
-if (!empty($filter_tag_id)) $filter_desc[] = "Filtered by Tag";
+if (!empty($filter_tag_id)) {
+    $tag_name_display = 'Unknown Tag';
+    foreach ($my_tags as $mt) {
+        if ($mt['tag_id'] == $filter_tag_id) {
+            $tag_name_display = htmlspecialchars($mt['tag_name']);
+            break;
+        }
+    }
+    $filter_desc[] = "Tag: <strong>" . $tag_name_display . "</strong>";
+}
 if (!empty($filter_status)) {
     if ($filter_status === 'overdue') {
         $filter_desc[] = "Status: <strong style='color:#dc3545;'>Overdue</strong>";
@@ -36,7 +56,24 @@ if (!empty($filter_status)) {
         $filter_desc[] = "Status: <strong>$label</strong>";
     }
 }
-if (!empty($filter_matrix)) $filter_desc[] = "Priority: " . htmlspecialchars($filter_matrix);
+if (!empty($filter_matrix)) {
+    $matrix_labels = [
+            'do_first' => '🔴 Do First',
+            'schedule' => '🔵 Schedule',
+            'delegate' => '🟡 Delegate',
+            'dont_do'  => '⚪ Don\'t Do'
+    ];
+    $label = isset($matrix_labels[$filter_matrix]) ? $matrix_labels[$filter_matrix] : $filter_matrix;
+
+    $filter_desc[] = "Priority: <strong>" . $label . "</strong>";
+}
+
+if (!empty($filter_start_date)) {
+    $filter_desc[] = "From: <strong>" . date("d/m/Y", strtotime($filter_start_date)) . "</strong>";
+}
+if (!empty($filter_end_date)) {
+    $filter_desc[] = "To: <strong>" . date("d/m/Y", strtotime($filter_end_date)) . "</strong>";
+}
 $current_filter_text = empty($filter_desc) ? "All Tasks" : implode(" | ", $filter_desc);
 
 // --- MAIN QUERY ---
@@ -203,8 +240,8 @@ include '../../includes/sidebar.php';
 <div class="main-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-tasks"></i> All Tasks</h2>
-        <a href="../../home.php" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <a href="<?php echo $redirect_url?>" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
@@ -255,7 +292,7 @@ include '../../includes/sidebar.php';
     </div>
 
     <div class="filter-status-bar" style="margin-bottom: 20px;">
-        <div>Viewing: <?php echo $current_filter_text; ?></div>
+        <div><strong>Filtered by</strong> <?php echo $current_filter_text; ?></div>
     </div>
 
     <div class="task-list">
@@ -321,7 +358,6 @@ include '../../includes/sidebar.php';
         <?php else: ?>
             <div style="text-align: center; color: #888; margin-top: 50px;">
                 <p>No tasks found.</p>
-                <a href="create_task.php" class="btn">Create Task</a>
             </div>
         <?php endif; ?>
     </div>

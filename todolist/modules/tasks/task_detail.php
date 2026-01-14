@@ -17,6 +17,22 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 }
 $task_id = $_GET['id'];
 
+// --- 1. LOGIC REDIRECT URL (Nút Back & Giữ trạng thái) ---
+$redirect_url = '../../home.php'; // Mặc định
+if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
+    $redirect_url = $_GET['redirect_url'];
+} elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    // Tránh lấy chính trang này làm referer
+    if (strpos($_SERVER['HTTP_REFERER'], 'task_detail.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
+// Tạo URL của chính trang này (để sau khi toggle/edit xong thì quay lại đây)
+// Quan trọng: urlencode để không bị lỗi tham số
+$current_page_url = "task_detail.php?id=" . $task_id . "&redirect_url=" . urlencode($redirect_url);
+// ---------------------------------------------------------
+
 // Query main Task data
 $sql = "SELECT t.*, l.list_name, l.color_code 
         FROM Tasks t 
@@ -64,6 +80,7 @@ $is_in_progress = ($task['status'] === 'in_progress');
 $is_overdue = (!$is_completed && !$is_canceled && !empty($task['due_date']) && strtotime($task['due_date']) < time());
 
 $list_name_display = !empty($task['list_name']) ? htmlspecialchars($task['list_name']) : 'Inbox';
+// Logic link list: Nếu là Inbox thì về tasks.php, nếu list thường thì về view_list.php
 $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list_id'] : "../../tasks.php?list_id=inbox";
 ?>
 
@@ -75,7 +92,6 @@ $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list
     <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Nút Dashboard (Back) - Viền mỏng, phóng to và bay lên */
         .btn-back-custom {
             display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
             background-color: transparent; color: #6c757d; border: 1px solid #dee2e6;
@@ -89,24 +105,17 @@ $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list
             color: #333;
         }
 
-        /* Container hành động */
         .task-detail-actions {
             display: flex; gap: 12px; align-items: center;
         }
 
-        /* Style chung cho nút Action */
         .btn-act {
             padding: 10px 22px; border-radius: 8px; border: none;
             font-weight: 600; cursor: pointer; transition: all 0.3s ease;
             text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-act:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 
-        .btn-act:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        /* 1. Nút Complete: Màu xanh dương */
         .btn-complete { background-color: #007bff !important; color: white !important; }
         .btn-complete:hover { background-color: #0056b3 !important; }
 
@@ -121,13 +130,26 @@ $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list
             color: #fff !important; 
         }
 
-        /* 3. Nút Delete: Màu đỏ */
         .btn-delete-red { background-color: #e74c3c !important; color: white !important; }
         .btn-delete-red:hover { background-color: #c0392b !important; }
 
-        /* Sửa lỗi khung trắng Date Filter (Nếu trang này có hiển thị lại filter) */
+        .title-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .big-toggle-btn {
+            font-size: 1.8rem;
+            text-decoration: none;
+            transition: transform 0.2s;
+            margin-top: -2px;
+        }
+        .big-toggle-btn:hover { transform: scale(1.1); }
+        .big-toggle-btn i { transition: color 0.3s; }
+
         .filter-wrapper { background-color: #f8f9fa !important; border: none !important; }
         .filter-date-group { background: transparent !important; border: none !important; }
+
         .btn-add-subtask {
             background-color: #007bff !important;
             color: white !important;
@@ -141,20 +163,8 @@ $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        .btn-add-subtask:hover {
-            transform: translateY(-5px);
-            background-color: #0056b3 !important;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
-        }
-
-        /* Đảm bảo ô input subtask cũng đồng bộ chiều cao */
-        .subtask-input {
-            height: 40px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 0 15px;
-            flex-grow: 1;
+        .btn-add-subtask:hover { transform: translateY(-5px); background-color: #0056b3 !important; box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3); }
+        .subtask-input { height: 40px; border: 1px solid #ddd; border-radius: 6px; padding: 0 15px; flex-grow: 1; }
     </style>
 </head>
 <body>
@@ -168,7 +178,7 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div style="color: #7f8c8d; font-size: 0.9em; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-home"></i> 
+            <i class="fas fa-home"></i>
             <a href="../../home.php" style="text-decoration: none; color: inherit;">Dashboard</a>
             <span>&gt;</span>
             <a href="<?php echo $list_link; ?>" style="text-decoration: none; color: inherit;"><?php echo $list_name_display; ?></a>
@@ -176,21 +186,32 @@ include '../../includes/sidebar.php';
             <strong>Task #<?php echo $task_id; ?></strong>
         </div>
 
-        <a href="../../home.php" class="btn-back-custom">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back-custom">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
     <div class="task-detail-card">
         <div class="task-detail-header">
-            <h2 class="<?php echo $is_canceled ? 'text-canceled' : ''; ?>" style="margin-top: 0;">
-                <?php if($is_completed): ?>
-                    <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
-                <?php elseif($is_in_progress): ?>
-                    <i class="fas fa-spinner fa-spin" style="color: #3498db;"></i>
-                <?php endif; ?>
-                <?php echo htmlspecialchars($task['title']); ?>
-            </h2>
+
+            <div class="title-row">
+                <a href="toggle_complete.php?id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($current_page_url); ?>"
+                   class="big-toggle-btn">
+                    <?php if ($is_completed): ?>
+                        <i class="fas fa-check-square" style="color: #28a745;"></i>
+                    <?php elseif ($is_in_progress): ?>
+                        <i class="fas fa-spinner fa-spin" style="color: #007bff;"></i>
+                    <?php elseif ($is_canceled): ?>
+                        <i class="fas fa-ban" style="color: #dc3545; opacity: 0.5;"></i>
+                    <?php else: ?>
+                        <i class="far fa-square" style="color: #adb5bd;"></i>
+                    <?php endif; ?>
+                </a>
+
+                <h2 class="<?php echo $is_canceled ? 'text-canceled' : ''; ?>" style="margin-top: 0; line-height: 1.2;">
+                    <?php echo htmlspecialchars($task['title']); ?>
+                </h2>
+            </div>
 
             <div class="task-badges-row">
                 <?php if ($is_overdue): ?>
@@ -260,24 +281,24 @@ include '../../includes/sidebar.php';
             </div>
 
             <div class="task-detail-actions">
-                <a href="toggle_complete.php?id=<?php echo $task_id; ?>" class="btn-act btn-complete">
+                <a href="toggle_complete.php?id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($current_page_url); ?>" class="btn-act btn-complete">
                     <?php if ($is_completed): ?><i class="fas fa-undo"></i> Re-open
                     <?php elseif ($is_canceled): ?><i class="fas fa-trash-restore"></i> Restore
                     <?php else: ?><i class="fas fa-check"></i> Complete
                     <?php endif; ?>
                 </a>
 
-                <a href="edit_task.php?id=<?php echo $task_id; ?>" class="btn-act btn-outline-dark">
+                <a href="edit_task.php?id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($current_page_url); ?>" class="btn-act btn-outline-dark">
                     <i class="fas fa-edit"></i> Edit
                 </a>
 
                 <?php if (!$is_completed && !$is_canceled): ?>
-                    <a href="cancel_task.php?id=<?php echo $task_id; ?>" class="btn-act btn-outline-dark" onclick="return confirm('Cancel this task?');">
+                    <a href="cancel_task.php?id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($current_page_url); ?>" class="btn-act btn-outline-dark" onclick="return confirm('Cancel this task?');">
                         <i class="fas fa-ban"></i> Cancel
                     </a>
                 <?php endif; ?>
 
-                <a href="delete_task.php?id=<?php echo $task_id; ?>" class="btn-act btn-delete-red" onclick="return confirm('Delete this task permanently?');">
+                <a href="delete_task.php?id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($redirect_url); ?>" class="btn-act btn-delete-red" onclick="return confirm('Delete this task permanently?');">
                     <i class="fas fa-trash-alt"></i> Delete
                 </a>
             </div>

@@ -9,20 +9,27 @@ if (!$user_id) { header("Location: ../../auth/login.php"); exit; }
 if (!isset($_GET['id'])) { header("Location: ../../home.php"); exit; }
 $list_id = $_GET['id'];
 
-// Kiểm tra xem có phải đang xem Inbox không
+$redirect_url = '../../home.php';
+if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
+    $redirect_url = $_GET['redirect_url'];
+} elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'view_list.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
+$current_url = "view_list.php?id=" . $list_id . "&redirect_url=" . urlencode($redirect_url);
+
 $is_inbox = ($list_id === 'inbox');
 
 // 1. LẤY THÔNG TIN LIST
 if ($is_inbox) {
-    // Nếu là Inbox, tự tạo thông tin giả lập
     $list_info = [
         'list_name' => 'Inbox',
         'color_code' => '#6c757d' // Màu xám mặc định
     ];
 } else {
-    // Nếu là List thường, query từ database
     if (!is_numeric($list_id)) { header("Location: ../../home.php"); exit; }
-
     $stmt_l = $conn->prepare("SELECT * FROM Lists WHERE list_id = ? AND user_id = ?");
     $stmt_l->bind_param("ii", $list_id, $user_id);
     $stmt_l->execute();
@@ -38,10 +45,8 @@ $sql = "SELECT t.*,
         LEFT JOIN Tags tg ON tt.tag_id = tg.tag_id";
 
 if ($is_inbox) {
-    // Inbox: Lấy task có list_id là NULL
     $sql .= " WHERE t.user_id = ? AND t.list_id IS NULL";
 } else {
-    // List thường: Lấy task có list_id bằng ID
     $sql .= " WHERE t.user_id = ? AND t.list_id = ?";
 }
 
@@ -118,21 +123,21 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div style="color: #7f8c8d; font-size: 0.9em;">
-            <i class="fas fa-home"></i> <a href="../../home.php" style="text-decoration: none;">Dashboard</a>
+            <i class="fas fa-home"></i> <a href="../../home.php" style="text-decoration: none; color: inherit;">Dashboard</a>
             <span style="margin: 0 5px;">&gt;</span>
             <?php echo $is_inbox ? 'System' : 'Lists'; ?>
             <span style="margin: 0 5px;">&gt;</span>
             <strong><?php echo htmlspecialchars($list_info['list_name']); ?></strong>
         </div>
 
-        <a href="../../home.php" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
         <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="width: 50px; height: 50px; background: <?php echo $list_info['color_code']; ?>; color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            <div style="width: 50px; height: 50px; background: <?php echo $list_info['color_code']; ?>; color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 5px 15px <?php echo $list_info['color_code']; ?>66;">
                 <i class="fas <?php echo $is_inbox ? 'fa-inbox' : 'fa-folder'; ?>"></i>
             </div>
             <div>
@@ -144,15 +149,16 @@ include '../../includes/sidebar.php';
         </div>
 
         <div class="manager-actions">
-            <a href="../tasks/create_task.php<?php echo $is_inbox ? '' : '?list_id='.$list_id; ?>" class="btn-add" style="display: flex; align-items: center; gap: 5px; padding: 10px 15px;">
+            <a href="../tasks/create_task.php?<?php echo $is_inbox ? '' : 'list_id='.$list_id.'&'; ?>redirect_url=<?php echo urlencode($current_url); ?>"
+               class="btn-add">
                 <i class="fas fa-plus"></i>
             </a>
 
             <?php if (!$is_inbox): ?>
-                <a href="edit_list.php?id=<?php echo $list_id; ?>" class="action-icon icon-edit" title="Edit List">
+                <a href="edit_list.php?id=<?php echo $list_id; ?>&redirect_url=<?php echo urlencode($current_url); ?>" class="action-icon icon-edit" title="Edit List">
                     <i class="fas fa-pen"></i>
                 </a>
-                <a href="manage_lists.php?delete_id=<?php echo $list_id; ?>" class="action-icon icon-delete" title="Delete List" onclick="return confirm('Delete this list? Tasks will be moved to Inbox.');">
+                <a href="manage_lists.php?delete_id=<?php echo $list_id; ?>&redirect_url=<?php echo urlencode($redirect_url); ?>" class="action-icon icon-delete" title="Delete List" onclick="return confirm('Delete this list? Tasks will be moved to Inbox.');">
                     <i class="fas fa-trash"></i>
                 </a>
             <?php endif; ?>
@@ -170,7 +176,9 @@ include '../../includes/sidebar.php';
                 ?>
 
                 <div class="task-item <?php echo $css_class; ?>" style="<?php echo $is_doing ? 'border-left: 4px solid #007bff;' : ''; ?>">
-                    <a href="../tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none; margin-right: 20px">
+
+                    <a href="../tasks/toggle_complete.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo urlencode($current_url); ?>"
+                       class="task-toggle" style="text-decoration: none; margin-right: 20px">
                         <?php if ($is_completed): ?>
                             <i class="fas fa-check-square" style="color: #28a745; font-size: 24px;"></i>
                         <?php elseif ($is_doing): ?>
@@ -184,7 +192,8 @@ include '../../includes/sidebar.php';
 
                     <div style="flex-grow: 1;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <a href="../tasks/task_detail.php?id=<?php echo $task['task_id']; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
+                            <a href="../tasks/task_detail.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo urlencode($current_url); ?>"
+                               class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
                                 <?php echo htmlspecialchars($task['title']); ?>
                             </a>
 
@@ -223,8 +232,8 @@ include '../../includes/sidebar.php';
                     </div>
 
                     <div class="task-actions">
-                        <a href="../tasks/edit_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-edit"><i class="fas fa-pen"></i></a>
-                        <a href="../tasks/delete_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-delete" onclick="return confirm('Delete task?');"><i class="fas fa-trash"></i></a>
+                        <a href="../tasks/edit_task.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo urlencode($current_url); ?>" class="action-icon icon-edit"><i class="fas fa-pen"></i></a>
+                        <a href="../tasks/delete_task.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo urlencode($current_url); ?>" class="action-icon icon-delete" onclick="return confirm('Delete task?');"><i class="fas fa-trash"></i></a>
                     </div>
                 </div>
             <?php endwhile; ?>
@@ -235,7 +244,7 @@ include '../../includes/sidebar.php';
                 </div>
                 <h3 style="margin: 0; color: #333;">It's empty!</h3>
                 <p>No tasks found in <?php echo htmlspecialchars($list_info['list_name']); ?>.</p>
-                <a href="../tasks/create_task.php<?php echo $is_inbox ? '' : '?list_id='.$list_id; ?>" class="btn" style="margin-top: 10px;">Create Task</a>
+                <a href="../tasks/create_task.php?<?php echo $is_inbox ? '' : 'list_id='.$list_id.'&'; ?>redirect_url=<?php echo urlencode($current_url); ?>" class="btn" style="margin-top: 10px;">Create Task</a>
             </div>
         <?php endif; ?>
     </div>

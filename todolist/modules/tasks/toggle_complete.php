@@ -17,6 +17,19 @@ if (!$task_id) {
     exit;
 }
 
+$redirect_url = "task_detail.php?id=" . $task_id;
+
+if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
+    $redirect_url = $_GET['redirect_url'];
+} elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'toggle_complete.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
+if (strpos($redirect_url, 'view_list.php') !== false && strpos($redirect_url, 'lists/') === false) {
+    $redirect_url = '../lists/' . $redirect_url;
+}
 // Lấy trạng thái hiện tại
 $stmt = $conn->prepare("SELECT status FROM Tasks WHERE task_id = ? AND user_id = ?");
 $stmt->bind_param("ii", $task_id, $user_id);
@@ -79,7 +92,6 @@ if ($stmt_update->execute()) {
 $stmt_update->close();
 $conn->close();
 
-// SỬA TẠI ĐÂY: Ép quay lại trang chi tiết task thay vì dùng REFERER
-header("Location: task_detail.php?id=" . $task_id);
+header("Location: " . $redirect_url);
 exit;
 ?>

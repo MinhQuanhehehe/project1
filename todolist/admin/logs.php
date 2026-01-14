@@ -8,6 +8,17 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
+$redirect_url = 'admin.php';
+
+if (isset($_GET['redirect']) && !empty($_GET['redirect'])) {
+    $redirect_url = $_GET['redirect'];
+}
+elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'logs.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
 // 1. Get Params
 $filter_user = $_GET['user'] ?? '';
 $filter_action = $_GET['action'] ?? '';
@@ -177,16 +188,22 @@ include '../includes/sidebar.php';
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-history"></i> System Logs</h2>
         <div style="display: flex; gap: 12px;">
-            <a href="admin_actions.php?action=clean_logs&redirect=logs.php" class="btn-clean" onclick="return confirm('Delete logs older than 30 days?')">
+            <a href="admin_actions.php?action=clean_logs&redirect=<?php echo urlencode('logs.php?redirect=' . $redirect_url); ?>"
+               class="btn-clean"
+               onclick="return confirm('Delete logs older than 30 days?')">
                 <i class="fas fa-broom"></i> Clean Logs
             </a>
             <a href="admin.php" class="btn-back">
-                <i class="fas fa-arrow-left"></i> Dashboard
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="<?php echo $redirect_url?>" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back
             </a>
         </div>
     </div>
 
     <form action="logs.php" method="GET" class="filter-wrapper" style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+        <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect_url); ?>">
         <div class="filter-row">
 
             <div class="filter-column">
@@ -220,7 +237,9 @@ include '../includes/sidebar.php';
             <div style="display: flex; gap: 10px; align-items: flex-end;">
                 <button type="submit" class="btn-filter"><i class="fas fa-filter"></i></button>
                 <?php if(!empty($filter_user) || !empty($filter_action) || !empty($filter_date_from) || !empty($filter_date_to)): ?>
-                    <a href="logs.php" class="btn-clear"><i class="fas fa-times"></i></a>
+                    <a href="logs.php?redirect=<?php echo urlencode($redirect_url); ?>" class="btn-clear">
+                        <i class="fas fa-times"></i>
+                    </a>
                 <?php endif; ?>
             </div>
         </div>

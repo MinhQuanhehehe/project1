@@ -6,6 +6,20 @@ include '../../config/db_connect.php';
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
 if (!$user_id) { header("Location: ../../auth/login.php"); exit; }
 
+$redirect_url = '../../home.php';
+
+if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
+    $redirect_url = $_GET['redirect_url'];
+}
+elseif (isset($_POST['redirect_url']) && !empty($_POST['redirect_url'])) {
+    $redirect_url = $_POST['redirect_url'];
+}
+elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'manage_lists.php') === false) {
+        $redirect_url = $_SERVER['HTTP_REFERER'];
+    }
+}
+
 $error = ''; $success = '';
 
 // CREATE LIST
@@ -61,7 +75,7 @@ if (isset($_GET['delete_id'])) {
             $stmt_log->bind_param("iis", $user_id, $del_id, $detail);
             $stmt_log->execute();
 
-            header("Location: manage_lists.php?msg=deleted");
+            header("Location: manage_lists.php?msg=deleted&redirect_url=" . urlencode($redirect_url));
             exit;
         } else {
             $error = "Error deleting list.";
@@ -142,7 +156,7 @@ include '../../includes/sidebar.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-folder-open"></i> Manage Lists</h2>
-        <a href="../../home.php" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
 
     <?php if ($error): ?>
@@ -160,6 +174,7 @@ include '../../includes/sidebar.php';
         <h4 style="margin-top: 0; margin-bottom: 15px; color: #555;">Create New List</h4>
         <form action="manage_lists.php" method="POST" style="display: flex; gap: 15px; align-items: flex-end;">
             <input type="hidden" name="add_list" value="1">
+            <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
 
             <div style="flex: 2;">
                 <label style="font-weight: 600; display: block; margin-bottom: 5px;">List Name</label>
@@ -195,10 +210,13 @@ include '../../includes/sidebar.php';
                     </div>
 
                     <div class="manager-actions">
-                        <a href="edit_list.php?id=<?php echo $list['list_id']; ?>" class="action-icon icon-edit" title="Edit">
+                        <a href="edit_list.php?id=<?php echo $list['list_id']; ?>&redirect_url=<?php echo urlencode($redirect_url); ?>" class="action-icon icon-edit" title="Edit">
                             <i class="fas fa-pen"></i>
                         </a>
-                        <a href="manage_lists.php?delete_id=<?php echo $list['list_id']; ?>" class="action-icon icon-delete" title="Delete"
+
+                        <a href="manage_lists.php?delete_id=<?php echo $list['list_id']; ?>&redirect_url=<?php echo urlencode($redirect_url); ?>"
+                           class="action-icon icon-delete"
+                           title="Delete"
                            onclick="return confirm('Delete list \'<?php echo $list['list_name']; ?>\'? Tasks will be moved to Inbox.');">
                             <i class="fas fa-trash"></i>
                         </a>
