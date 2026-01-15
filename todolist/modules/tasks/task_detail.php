@@ -27,8 +27,7 @@ if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
 }
 if (strpos($redirect_url, 'view_list.php') !== false
         && strpos($redirect_url, 'lists/') === false
-        && strpos($redirect_url, 'task_detail.php') === false) {
-
+        && strpos($redirect_url, 'http') === false) {
     $redirect_url = '../lists/' . $redirect_url;
 }
 $current_page_url = "task_detail.php?id=" . $task_id . "&redirect_url=" . urlencode($redirect_url);
@@ -79,7 +78,7 @@ $is_in_progress = ($task['status'] === 'in_progress');
 $is_overdue = (!$is_completed && !$is_canceled && !empty($task['due_date']) && strtotime($task['due_date']) < time());
 
 $list_name_display = !empty($task['list_name']) ? htmlspecialchars($task['list_name']) : 'Inbox';
-// Logic link list: Nếu là Inbox thì về tasks.php, nếu list thường thì về view_list.php
+
 $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list_id'] : "../../tasks.php?list_id=inbox";
 ?>
 

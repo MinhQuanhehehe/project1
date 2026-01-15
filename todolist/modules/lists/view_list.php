@@ -9,16 +9,25 @@ if (!$user_id) { header("Location: ../../auth/login.php"); exit; }
 if (!isset($_GET['id'])) { header("Location: ../../home.php"); exit; }
 $list_id = $_GET['id'];
 
-$redirect_url = '../../home.php';
+// --- 1. XỬ LÝ LOGIC NÚT BACK (SỬA LẠI ĐỂ CHO PHÉP LIST -> LIST) ---
+$redirect_url = '../../home.php'; // Mặc định về Home
+
 if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
     $redirect_url = $_GET['redirect_url'];
 } elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
-    if (strpos($_SERVER['HTTP_REFERER'], 'view_list.php') === false) {
-        $redirect_url = $_SERVER['HTTP_REFERER'];
+    $referer = $_SERVER['HTTP_REFERER'];
+    $is_sub_page = (strpos($referer, 'task_detail.php') !== false ||
+            strpos($referer, 'create_task.php') !== false ||
+            strpos($referer, 'edit_task.php') !== false ||
+            strpos($referer, 'toggle_complete.php') !== false);
+    $is_same_list = (strpos($referer, 'view_list.php') !== false && strpos($referer, "id=$list_id") !== false);
+
+    if (!$is_sub_page && !$is_same_list) {
+        $redirect_url = $referer;
     }
 }
 
-$current_url = "view_list.php?id=" . $list_id . "&redirect_url=" . urlencode($redirect_url);
+$current_url = "../lists/view_list.php?id=" . $list_id . "&redirect_url=" . urlencode($redirect_url);
 
 $is_inbox = ($list_id === 'inbox');
 

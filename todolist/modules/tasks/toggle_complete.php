@@ -27,7 +27,9 @@ if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
     }
 }
 
-if (strpos($redirect_url, 'view_list.php') !== false && strpos($redirect_url, 'lists/') === false) {
+if (strpos($redirect_url, 'view_list.php') !== false
+    && strpos($redirect_url, 'lists/') === false
+    && strpos($redirect_url, 'task_detail.php') === false) {
     $redirect_url = '../lists/' . $redirect_url;
 }
 // Lấy trạng thái hiện tại
