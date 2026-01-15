@@ -197,6 +197,9 @@ include 'includes/sidebar.php';
                 <div class="urgent-list">
                     <?php while($t = $urgent_tasks->fetch_assoc()): ?>
                         <div class="task-row-item">
+                            <a href="modules/tasks/toggle_complete.php?id=<?php echo $t['task_id']; ?>" style="text-decoration: none; margin-right: 5px;">
+                                <i class="far fa-square" style="color: #adb5bd; font-size: 18px;"></i>
+                            </a>
                             <div class="task-info-col">
                                 <a href="modules/tasks/task_detail.php?id=<?php echo $t['task_id']; ?>" class="task-title-link">
                                     <?php echo htmlspecialchars($t['title']); ?>
