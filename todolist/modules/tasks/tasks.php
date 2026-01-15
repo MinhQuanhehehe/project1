@@ -4,16 +4,15 @@ global $conn;
 
 $redirect_url = '../../home.php';
 
-if (isset($_POST['redirect_url']) && !empty($_POST['redirect_url'])) {
-    $redirect_url = $_POST['redirect_url'];
+if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
+    $redirect_url = $_GET['redirect_url'];
 }
 elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
-    if (strpos($_SERVER['HTTP_REFERER'], 'create_task.php') === false) {
+    if (strpos($_SERVER['HTTP_REFERER'], 'tasks.php') === false && strpos($_SERVER['HTTP_REFERER'], 'create_task.php') === false) {
         $redirect_url = $_SERVER['HTTP_REFERER'];
     }
 }
 
-// 1. CHỈNH SỬA ĐƯỜNG DẪN CONFIG
 include '../../config/db_connect.php';
 
 $user_id = $_SESSION['user_id'] ?? null;
@@ -124,6 +123,8 @@ $stmt = $conn->prepare($sql);
 if (!empty($params)) $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $tasks_result = $stmt->get_result();
+
+$redirect_url_encoded = urlencode("tasks.php?" . $_SERVER['QUERY_STRING'] . "&redirect_url=" . urlencode($redirect_url));
 ?>
 
 <!DOCTYPE html>
@@ -133,9 +134,8 @@ $tasks_result = $stmt->get_result();
     <title>All Tasks - Todo Pro</title>
     <link rel="stylesheet" href="../../assets/css/style1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <style>
-        /* Tinh chỉnh giao diện Filter */
         .filter-wrapper {
             background: #fff;
             padding: 20px;
@@ -157,7 +157,6 @@ $tasks_result = $stmt->get_result();
             outline: none;
         }
 
-        /* NÚT BACK TO DASHBOARD (Cập nhật mới) */
         .btn-back {
             display: inline-flex;
             align-items: center;
@@ -171,7 +170,6 @@ $tasks_result = $stmt->get_result();
             font-weight: 500;
             transition: all 0.3s ease; /* Hiệu ứng mượt */
         }
-
         .btn-back:hover {
             transform: scale(1.1); /* Phóng to lên 10% */
             background-color: #f8f9fa;
@@ -180,7 +178,6 @@ $tasks_result = $stmt->get_result();
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        /* Nút Apply màu xanh */
         .btn-apply {
             background-color: #007bff !important;
             color: white !important;
@@ -201,7 +198,6 @@ $tasks_result = $stmt->get_result();
             transform: translateY(-5px);
         }
 
-        /* Nút Clear màu đỏ */
         .btn-clear {
             background-color: #6c757d !important;
             color: white !important;
@@ -240,17 +236,18 @@ include '../../includes/sidebar.php';
 <div class="main-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="margin: 0; color: #2c3e50;"><i class="fas fa-tasks"></i> All Tasks</h2>
-        <a href="<?php echo $redirect_url?>" class="btn-back">
+        <a href="<?php echo htmlspecialchars($redirect_url); ?>" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 
     <div class="filter-wrapper">
         <form action="" method="GET">
+            <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
             <div class="filter-row" style="margin-bottom: 15px;">
                 <input type="text" name="search_query" placeholder="Search tasks..." value="<?php echo htmlspecialchars($search_query); ?>" class="filter-field" style="flex: 2;">
-                
-                <select name="status" onchange="this.form.submit()" class="filter-field" style="flex: 1;">
+
+                <select name="status" class="filter-field" style="flex: 1;">
                     <option value="">-- All Statuses --</option>
                     <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
                     <option value="in_progress" <?php echo $filter_status === 'in_progress' ? 'selected' : ''; ?>>In Progress</option>
@@ -259,14 +256,14 @@ include '../../includes/sidebar.php';
                     <option value="overdue" <?php echo $filter_status === 'overdue' ? 'selected' : ''; ?>>Overdue</option>
                 </select>
 
-                <select name="tag_id" onchange="this.form.submit()" class="filter-field" style="flex: 1;">
+                <select name="tag_id" class="filter-field" style="flex: 1;">
                     <option value="">-- All Tags --</option>
                     <?php foreach ($my_tags as $t) echo "<option value='{$t['tag_id']}' ".($filter_tag_id == $t['tag_id']?'selected':'').">".htmlspecialchars($t['tag_name'])."</option>"; ?>
                 </select>
             </div>
 
             <div class="filter-row">
-                <select name="matrix_filter" onchange="this.form.submit()" class="filter-field" style="flex: 1.2;">
+                <select name="matrix_filter" class="filter-field" style="flex: 1.2;">
                     <option value="">-- All Priorities --</option>
                     <option value="do_first" <?php echo $filter_matrix === 'do_first' ? 'selected' : ''; ?>>🔴 Do First</option>
                     <option value="schedule" <?php echo $filter_matrix === 'schedule' ? 'selected' : ''; ?>>🔵 Schedule</option>
@@ -283,8 +280,8 @@ include '../../includes/sidebar.php';
                 <button type="submit" class="btn-apply">
                     <i class="fas fa-search"></i>
                 </button>
-                
-                <a href="tasks.php" class="btn-clear" title="Clear Filters">
+
+                <a href="tasks.php?redirect_url=<?php echo urlencode($redirect_url); ?>" class="btn-clear" title="Clear Filters">
                     <i class="fas fa-times"></i>
                 </a>
             </div>
@@ -305,7 +302,7 @@ include '../../includes/sidebar.php';
                 $css_class = $is_completed ? 'completed' : ($is_canceled ? 'canceled-task' : '');
                 ?>
                 <div class="task-item <?php echo $css_class; ?>" style="<?php echo $is_doing ? 'border-left: 4px solid #007bff;' : ''; ?>">
-                    <a href="toggle_complete.php?id=<?php echo $task['task_id']; ?>" class="task-toggle" style="text-decoration: none; margin-right: 20px">
+                    <a href="toggle_complete.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>" class="task-toggle" style="text-decoration: none; margin-right: 20px">
                         <?php if ($is_completed): ?><i class="fas fa-check-square" style="color: #28a745; font-size: 24px;"></i>
                         <?php elseif ($is_doing): ?><i class="fas fa-spinner fa-spin" style="color: #007bff; font-size: 24px;"></i>
                         <?php elseif ($is_canceled): ?><i class="fas fa-ban" style="color: #dc3545; font-size: 24px; opacity: 0.5;"></i>
@@ -315,7 +312,7 @@ include '../../includes/sidebar.php';
 
                     <div style="flex-grow: 1;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <a href="task_detail.php?id=<?php echo $task['task_id']; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
+                            <a href="task_detail.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>" class="task-title <?php echo $is_canceled ? 'status-canceled-text' : ''; ?>">
                                 <?php echo htmlspecialchars($task['title']); ?>
                             </a>
                             <?php if ($is_doing): ?><span style="font-size: 0.7em; color: #007bff; background: #e7f1ff; padding: 1px 5px; border-radius: 4px; font-weight: bold;">DOING</span><?php endif; ?>
@@ -350,8 +347,8 @@ include '../../includes/sidebar.php';
                     </div>
 
                     <div class="task-actions">
-                        <a href="edit_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-edit"><i class="fas fa-pen"></i></a>
-                        <a href="delete_task.php?id=<?php echo $task['task_id']; ?>" class="action-icon icon-delete" onclick="return confirm('Delete task?');"><i class="fas fa-trash"></i></a>
+                        <a href="edit_task.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>" class="action-icon icon-edit"><i class="fas fa-pen"></i></a>
+                        <a href="delete_task.php?id=<?php echo $task['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>" class="action-icon icon-delete" onclick="return confirm('Delete task?');"><i class="fas fa-trash"></i></a>
                     </div>
                 </div>
             <?php endwhile; ?>

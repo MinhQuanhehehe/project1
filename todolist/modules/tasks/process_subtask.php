@@ -6,6 +6,18 @@ include '../../config/db_connect.php';
 $user_id = $_SESSION['user_id'] ?? $_SESSION['UserID'] ?? null;
 if (!$user_id) { header("Location: ../../auth/login.php"); exit; }
 
+$redirect_url = '';
+if (isset($_REQUEST['redirect_url']) && !empty($_REQUEST['redirect_url'])) {
+    $redirect_url = $_REQUEST['redirect_url'];
+}
+function get_return_url($task_id, $redirect_url) {
+    $url = "task_detail.php?id=" . $task_id;
+    if (!empty($redirect_url)) {
+        $url .= "&redirect_url=" . urlencode($redirect_url);
+    }
+    return $url;
+}
+
 // THÊM MỚI SUBTASK
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_subtask'])) {
     $task_id = $_POST['task_id'];
@@ -24,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_subtask'])) {
                 $new_sub_id = $conn->insert_id;
                 $log_detail = "Added checklist item: " . $title;
                 $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'CREATE', 'SubTasks', $new_sub_id, '$log_detail')");
-                
+
                 // Tự động chuyển Task sang In Progress
                 $conn->query("UPDATE Tasks SET status = 'in_progress' WHERE task_id = $task_id AND status = 'pending'");
             }
@@ -32,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_subtask'])) {
         }
         $check->close();
     }
-    // Quay lại trang chi tiết
-    header("Location: task_detail.php?id=" . $task_id);
+    // Quay lại trang chi tiết kèm URL cũ
+    header("Location: " . get_return_url($task_id, $redirect_url));
     exit;
 }
 
@@ -72,8 +84,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $conn->query("INSERT INTO ActivityLogs (user_id, action_type, target_table, target_id, details) VALUES ($user_id, 'DELETE', 'SubTasks', $subtask_id, '$safe_detail')");
         }
 
-        // SỬA TẠI ĐÂY: Đảm bảo luôn quay lại trang detail với ID chính xác
-        header("Location: task_detail.php?id=" . $parent_task_id);
+        // Quay lại trang chi tiết kèm URL cũ
+        header("Location: " . get_return_url($parent_task_id, $redirect_url));
         exit;
     }
 }

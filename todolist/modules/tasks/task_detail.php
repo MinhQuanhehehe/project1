@@ -21,12 +21,14 @@ $redirect_url = '../../home.php'; // Mặc định
 if (isset($_GET['redirect_url']) && !empty($_GET['redirect_url'])) {
     $redirect_url = $_GET['redirect_url'];
 } elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
-    // Tránh lấy chính trang này làm referer
     if (strpos($_SERVER['HTTP_REFERER'], 'task_detail.php') === false) {
         $redirect_url = $_SERVER['HTTP_REFERER'];
     }
 }
-if (strpos($redirect_url, 'view_list.php') !== false && strpos($redirect_url, 'lists/') === false) {
+if (strpos($redirect_url, 'view_list.php') !== false
+        && strpos($redirect_url, 'lists/') === false
+        && strpos($redirect_url, 'task_detail.php') === false) {
+
     $redirect_url = '../lists/' . $redirect_url;
 }
 $current_page_url = "task_detail.php?id=" . $task_id . "&redirect_url=" . urlencode($redirect_url);
@@ -142,10 +144,6 @@ $list_link = !empty($task['list_id']) ? "../lists/view_list.php?id=".$task['list
             margin-top: -2px;
         }
         .big-toggle-btn:hover { transform: scale(1.1); }
-        .big-toggle-btn i { transition: color 0.3s; }
-
-        .filter-wrapper { background-color: #f8f9fa !important; border: none !important; }
-        .filter-date-group { background: transparent !important; border: none !important; }
 
         .btn-add-subtask {
             background-color: #007bff !important;
@@ -190,7 +188,6 @@ include '../../includes/sidebar.php';
 
     <div class="task-detail-card">
         <div class="task-detail-header">
-
             <div class="title-row">
                 <a href="toggle_complete.php?id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($current_page_url); ?>"
                    class="big-toggle-btn">
@@ -248,11 +245,11 @@ include '../../includes/sidebar.php';
             <div class="subtask-list">
                 <?php foreach ($subtasks as $st): $done = $st['is_completed']; ?>
                     <div class="subtask-item <?php echo $done ? 'done' : ''; ?>">
-                        <a href="process_subtask.php?action=toggle&id=<?php echo $st['subtask_id']; ?>" class="check-box">
+                        <a href="process_subtask.php?action=toggle&id=<?php echo $st['subtask_id']; ?>&task_id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($redirect_url); ?>" class="check-box">
                             <i class="<?php echo $done ? 'fas fa-check-square' : 'far fa-square'; ?>"></i>
                         </a>
                         <span class="subtask-text"><?php echo htmlspecialchars($st['title']); ?></span>
-                        <a href="process_subtask.php?action=delete&id=<?php echo $st['subtask_id']; ?>" class="delete-sub" onclick="return confirm('Delete this item?');">
+                        <a href="process_subtask.php?action=delete&id=<?php echo $st['subtask_id']; ?>&task_id=<?php echo $task_id; ?>&redirect_url=<?php echo urlencode($redirect_url); ?>" class="delete-sub" onclick="return confirm('Delete this item?');">
                             <i class="fas fa-times"></i>
                         </a>
                     </div>
@@ -262,6 +259,7 @@ include '../../includes/sidebar.php';
             <?php if (!$is_completed && !$is_canceled): ?>
                 <form action="process_subtask.php" method="POST" class="subtask-form">
                     <input type="hidden" name="task_id" value="<?php echo $task_id; ?>">
+                    <input type="hidden" name="redirect_url" value="<?php echo htmlspecialchars($redirect_url); ?>">
                     <input type="hidden" name="add_subtask" value="1">
                     <input type="text" name="subtask_title" required placeholder="Add a checklist item..." class="subtask-input">
                     <button type="submit" class="btn-add-subtask"><i class="fas fa-plus"></i></button>

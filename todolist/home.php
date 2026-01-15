@@ -55,6 +55,8 @@ $sql_today = "SELECT t.*, l.list_name, l.color_code,
               ORDER BY t.due_date ASC
               LIMIT 5";
 $today_tasks = $conn->query($sql_today);
+
+$redirect_url_encoded = urlencode('../../home.php');
 ?>
 
 <!DOCTYPE html>
@@ -141,6 +143,10 @@ $today_tasks = $conn->query($sql_today);
             color: #3498db;
             border-color: #3498db;
         }
+
+        .fa-spin {
+            animation: fa-spin 2s infinite linear;
+        }
     </style>
 </head>
 <body>
@@ -195,16 +201,30 @@ include 'includes/sidebar.php';
 
             <?php if ($urgent_tasks->num_rows > 0): ?>
                 <div class="urgent-list">
-                    <?php while($t = $urgent_tasks->fetch_assoc()): ?>
+                    <?php while($t = $urgent_tasks->fetch_assoc()):
+                        $is_completed = ($t['status'] === 'completed');
+                        $is_in_progress = ($t['status'] === 'in_progress');
+                        ?>
                         <div class="task-row-item">
-                            <a href="modules/tasks/toggle_complete.php?id=<?php echo $t['task_id']; ?>" style="text-decoration: none; margin-right: 5px;">
-                                <i class="far fa-square" style="color: #adb5bd; font-size: 18px;"></i>
+                            <a href="modules/tasks/toggle_complete.php?id=<?php echo $t['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>"
+                               style="text-decoration: none; margin-right: 5px;">
+                                <?php if ($is_completed): ?>
+                                    <i class="fas fa-check-square" style="color: #28a745; font-size: 18px;"></i>
+                                <?php elseif ($is_in_progress): ?>
+                                    <i class="fas fa-spinner fa-spin" style="color: #007bff; font-size: 18px;"></i>
+                                <?php else: ?>
+                                    <i class="far fa-square" style="color: #adb5bd; font-size: 18px;"></i>
+                                <?php endif; ?>
                             </a>
                             <div class="task-info-col">
-                                <a href="modules/tasks/task_detail.php?id=<?php echo $t['task_id']; ?>" class="task-title-link">
+                                <a href="modules/tasks/task_detail.php?id=<?php echo $t['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>" class="task-title-link">
                                     <?php echo htmlspecialchars($t['title']); ?>
                                 </a>
                                 <div class="task-meta">
+                                    <?php if ($is_in_progress): ?>
+                                        <span style="font-size: 0.7em; color: #007bff; background: #e7f1ff; padding: 1px 5px; border-radius: 4px; font-weight: bold;">DOING</span>
+                                    <?php endif; ?>
+
                                     <?php if (!empty($t['list_name'])): ?>
                                         <span class="badge-pill" style="background-color: <?php echo $t['color_code']; ?>; font-size: 0.75em; padding: 2px 8px;">
                                             <i class="fas fa-folder"></i> <?php echo htmlspecialchars($t['list_name']); ?>
@@ -250,16 +270,30 @@ include 'includes/sidebar.php';
 
             <?php if ($today_tasks->num_rows > 0): ?>
                 <div class="today-list">
-                    <?php while($t = $today_tasks->fetch_assoc()): ?>
+                    <?php while($t = $today_tasks->fetch_assoc()):
+                        $is_completed = ($t['status'] === 'completed');
+                        $is_in_progress = ($t['status'] === 'in_progress');
+                        ?>
                         <div class="task-row-item">
-                            <a href="modules/tasks/toggle_complete.php?id=<?php echo $t['task_id']; ?>" style="text-decoration: none; margin-right: 5px;">
-                                <i class="far fa-square" style="color: #adb5bd; font-size: 18px;"></i>
+                            <a href="modules/tasks/toggle_complete.php?id=<?php echo $t['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>"
+                               style="text-decoration: none; margin-right: 5px;">
+                                <?php if ($is_completed): ?>
+                                    <i class="fas fa-check-square" style="color: #28a745; font-size: 18px;"></i>
+                                <?php elseif ($is_in_progress): ?>
+                                    <i class="fas fa-spinner fa-spin" style="color: #007bff; font-size: 18px;"></i>
+                                <?php else: ?>
+                                    <i class="far fa-square" style="color: #adb5bd; font-size: 18px;"></i>
+                                <?php endif; ?>
                             </a>
                             <div class="task-info-col">
-                                <a href="modules/tasks/task_detail.php?id=<?php echo $t['task_id']; ?>" class="task-title-link">
+                                <a href="modules/tasks/task_detail.php?id=<?php echo $t['task_id']; ?>&redirect_url=<?php echo $redirect_url_encoded; ?>" class="task-title-link">
                                     <?php echo htmlspecialchars($t['title']); ?>
                                 </a>
                                 <div class="task-meta">
+                                    <?php if ($is_in_progress): ?>
+                                        <span style="font-size: 0.7em; color: #007bff; background: #e7f1ff; padding: 1px 5px; border-radius: 4px; font-weight: bold;">DOING</span>
+                                    <?php endif; ?>
+
                                     <?php if (!empty($t['list_name'])): ?>
                                         <span class="badge-pill" style="background-color: <?php echo $t['color_code']; ?>; font-size: 0.75em; padding: 2px 8px;">
                                             <i class="fas fa-folder"></i> <?php echo htmlspecialchars($t['list_name']); ?>
